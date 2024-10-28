@@ -12,6 +12,7 @@ on:
       DEVGUARD_TOKEN: ${{ secrets.DEVGUARD_TOKEN }}
 
 jobs: 
+  sca:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
