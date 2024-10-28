@@ -1,19 +1,27 @@
-name: 'sca scanner'
-description: 'Scan the code for security vulnerabilities'
-inputs:
-  devguard-token:
-    description: 'DevGuard token'
-    required: true
-  asset-name:
-    description: 'Asset name'
-    required: true
-  api-url:
-    description: 'API URL'
-    required: true
-    default: 'https://api.main.devguard.org'    
-    
-runs:
-  using: 'docker'
-  image: 'docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8'
-  args:
-    - devguard-scannner sca --asset-name=${{ inputs.asset-name }} --api-url=${{ inputs.api-url }} --token=${{ inputs.devguard-token }} --path=${{ github.workspace }}
+on:
+  workflow_call:
+    inputs:
+      asset-name:
+        types: [string]
+        required: true
+      api-url:
+        types: [string]
+        required: true
+        default: "https://api.main.devguard.org"  
+    secrets:
+      DEVGUARD_TOKEN: ${{ secrets.DEVGUARD_TOKEN }}
+
+jobs: 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      with:
+        fetch-depth: 0
+      uses: actions/checkout@v4 # Check out the repository content to the runner
+    - name: Set up Git
+      run: |
+        git config --global --add safe.directory /github/workspace
+    - name: DevGuard SCA
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8
+      with:
+        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.DEVGUARD_TOKEN }}" --path=${{ github.workspace }}
