@@ -1,0 +1,19 @@
+name: 'sca scanner'
+description: 'Scan the code for security vulnerabilities'
+inputs:
+  devguard-token:
+    description: 'DevGuard token'
+    required: true
+  asset-name:
+    description: 'Asset name'
+    required: true
+  api-url:
+    description: 'API URL'
+    required: true
+    default: 'https://api.main.devguard.org'    
+    
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8'
+  args:
+    - devguard-scannner sca --asset-name=${{ inputs.asset-name }} --api-url=${{ inputs.api-url }} --token=${{ inputs.devguard-token }} --path=${{ github.workspace }}
