@@ -5,29 +5,30 @@ on:
         description: 'Type of scan to be performed'
         required: true
         default: 'full'
-        type: choice
-        options:
-          - sca
-          - container-scanning
-          - full   
+        type: string
+        
       asset-name:
         description: 'Name of the asset to be scanned'
         type: string
         required: true
+
       api-url:
         type: string
         required: false
         default: "https://api.main.devguard.org"  
+
       sca-path:
         description: 'Path to the source code to be scanned'
         type: string
         required: false
         default: "/github/workspace"
+
       image-path:
         description: 'Path to the Docker image to be scanned'
         type: string
         required: false
         default: "/github/workspace/image.tar"    
+        
     secrets:
       devguard-token:
         description: 'DevGuard API token'
