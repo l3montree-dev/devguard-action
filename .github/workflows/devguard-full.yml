@@ -3,7 +3,7 @@ on:
     inputs:
       scan-type:
         description: 'Type of scan to be performed'
-        required: true
+        required: false
         default: 'full'
         type: string
         
@@ -28,7 +28,7 @@ on:
         type: string
         required: false
         default: "/github/workspace/image.tar"    
-        
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -102,7 +102,7 @@ jobs:
         name: image-tag
         path: image-tag.txt        
 # Image scanning job to detect vulnerabilities in the built Docker image
-  image-scanning:
+  container-scanning:
     if : ${{ inputs.scan-type == 'container-scanning' || inputs.scan-type == 'full' }}
     needs: build-image
     runs-on: ubuntu-latest
