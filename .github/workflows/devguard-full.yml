@@ -1,7 +1,17 @@
 on:
   workflow_call:
     inputs:
+      scan-type:
+        description: 'Type of scan to be performed'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - sca
+          - container-scanning
+          - full   
       asset-name:
+        description: 'Name of the asset to be scanned'
         type: string
         required: true
       api-url:
@@ -9,20 +19,24 @@ on:
         required: false
         default: "https://api.main.devguard.org"  
       sca-path:
+        description: 'Path to the source code to be scanned'
         type: string
         required: false
         default: "/github/workspace"
       image-path:
+        description: 'Path to the Docker image to be scanned'
         type: string
         required: false
         default: "/github/workspace/image.tar"    
     secrets:
       devguard-token:
+        description: 'DevGuard API token'
         required: true
 
 jobs: 
   sca:
     runs-on: ubuntu-latest
+    if : ${{ inputs.scan-type == 'sca' || inputs.scan-type == 'full' }}
     steps:
     - name: Checkout code
       with:
@@ -40,7 +54,7 @@ jobs:
   # Docker image build job
   build-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    if : ${{ inputs.scan-type == 'container-scanning' || inputs.scan-type == 'full' }} || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     steps:
     - uses: actions/checkout@v4
     - name: Set IMAGE_TAG if tagged
@@ -64,7 +78,7 @@ jobs:
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} --context=/github/workspace --dockerfile=/github/workspace/Dockerfile --no-push --tarPath /github/workspace/image.tar
+        args: --destination=${{ env.IMAGE_TAG }} --context=/github/workspace --dockerfile=/github/workspace/Dockerfile --no-push --tarPath ${{ inputs.image-path }}
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
     - name: Use crane to get the digest
@@ -88,6 +102,7 @@ jobs:
         path: image-tag.txt        
 # Image scanning job to detect vulnerabilities in the built Docker image
   image-scanning:
+    if : ${{ inputs.scan-type == 'container-scanning' || inputs.scan-type == 'full' }}
     needs: build-image
     runs-on: ubuntu-latest
     steps:
