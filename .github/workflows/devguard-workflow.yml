@@ -34,6 +34,10 @@ on:
         description: 'DevGuard API token'
         required: true
 
+env:
+  IMAGE_TAG: ghcr.io/${{ github.repository }}:unstable
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  
 jobs: 
   sca:
     runs-on: ubuntu-latest
