@@ -34,11 +34,11 @@ To authenticate with the DevGuard API, the following secret is required:
 
 The workflow includes the following jobs:
 
-### Software Composition Analysis (SCA)
+### software composition analysis (SCA)
 
 This job runs SCA to detect vulnerabilities in your project’s dependencies. It only executes if the `scan-type` is set to `sca` or `full`.
 
-### Docker Image Build
+### docker image build
 This job builds your Docker image and is triggered if the `scan-type` is set to `container-scanning` or `full`.
 
 ### container-scanning
