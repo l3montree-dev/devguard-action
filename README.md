@@ -79,19 +79,13 @@ Here’s an example of how to call this reusable workflow from another workflow 
 name: CI/CD with DevGuard
 ```yaml
 on:
-  push:
-    branches:
-      - main
-
+  push
+  
 jobs:
   vulnerability-scan:
-    uses: <YOUR_GITHUB_USERNAME>/<YOUR_REPOSITORY>/.github/workflows/devguard-workflow.yml@main
+    uses: l3montree-dev/devguard-action/.github/workflows/devguard-full.yml@main
     with:
-      scan-type: 'full'
       asset-name: 'my-application'
-      api-url: 'https://api.main.devguard.org'
-      sca-path: '/github/workspace/src'
-      image-path: '/github/workspace/image.tar'
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
 ```      
