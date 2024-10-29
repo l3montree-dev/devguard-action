@@ -64,7 +64,7 @@ jobs:
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} --context=/github/workspace --dockerfile=/github/workspace/Dockerfile --no-push --tarPath ${{inputs.image-path}}
+        args: --destination=${{ env.IMAGE_TAG }} --context=/github/workspace --dockerfile=/github/workspace/Dockerfile --no-push --tarPath /github/workspace/scanner-image.tar
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
     - name: Use crane to get the digest
