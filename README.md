@@ -46,7 +46,7 @@ This job scans the built Docker image for vulnerabilities using the DevGuard Con
 
 ### Usage Example
 Here’s an example of how to call this reusable workflow from another workflow file:
-name: CI/CD with DevGuard
+
 ```yaml
 on:
   push
