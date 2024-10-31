@@ -63,7 +63,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       sca-path: ${{ inputs.sca-path }}
     secrets:
-      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
+      devguard-token: ${{ secrets.devguard-token }}
    
   call-build-image:
     uses: ./.github/workflows/build-image.yml
@@ -82,7 +82,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       image-path: ${{ inputs.image-path }}
     secrets:
-      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
+      devguard-token: ${{ secrets.devguard-token }}
   
   call-deploy:
     needs: call-build-image
