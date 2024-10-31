@@ -1,0 +1,59 @@
+name: Full DevGuard Scan
+on:
+  workflow_call:
+    inputs:   
+      asset-name:
+        description: 'Name of the asset to be scanned'
+        type: string
+        required: true
+
+      api-url:
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"  
+
+      sca-path:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace"
+
+      image-path:
+        description: 'Path to the Docker image to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace/image.tar"    
+
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
+
+env:
+  IMAGE_TAG: ghcr.io/${{ github.repository }}:unstable
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  
+jobs: 
+  call-software-compsition-analysis:
+    uses: ./.github/workflows/software-composition-analysis.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      sca-path: ${{ inputs.sca-path }}
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
+   
+  call-build-image:
+    uses: ./.github/workflows/build-image.yml
+    with:
+      image-path: ${{ inputs.image-path }}
+
+  call-container-scanning:
+    needs: call-build-image
+    uses: ./.github/workflows/container-scanning.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      image-path: ${{ inputs.image-path }}
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
