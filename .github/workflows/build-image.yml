@@ -33,6 +33,7 @@ on:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     steps:
     - uses: actions/checkout@v4
 
@@ -42,15 +43,21 @@ jobs:
         export IMAGE_TAG=$(cat image-tag.txt)
       if: ${{ inputs.image-tag }} != ""
 
-    - name: Set IMAGE_TAG 
+    - name: Set IMAGE_TAG if tagged
+      # Setting the image tag if the push is a tag push
       run: |
-          chmod +x "$GITHUB_WORKSPACE/set-image-tag.sh"
-          "$GITHUB_WORKSPACE/set-image-tag.sh"
-      env:
-        GITHUB_REF: ${{ github.ref }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_SHA: ${{ github.sha }}
-      if : ${{ inputs.image-tag }} == ""  
+        echo "ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}" > image-tag.txt
+        export IMAGE_TAG=$(cat image-tag.txt)
+      if: startsWith(github.ref, 'refs/tags/') && inputs.image-tag == ''
+
+    - name: Set IMAGE_TAG if not tagged
+      run: |
+        branch=${GITHUB_REF##*/}
+        sha=${GITHUB_SHA::8}
+        ts=$(date +%s)
+        echo "ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}" > image-tag.txt
+        export IMAGE_TAG=$(cat image-tag.txt)
+      if: github.ref == 'refs/heads/main' && inputs.image-tag == ''
 
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
