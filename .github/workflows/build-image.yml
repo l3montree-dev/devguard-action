@@ -43,7 +43,7 @@ jobs:
       if: ${{ inputs.image-tag }} != ""
 
     - name: Set IMAGE_TAG 
-      run: ./set-image-tag.sh
+      run: $GITHUB_WORKSPACE/set-image-tag.sh
       env:
         GITHUB_REF: ${{ github.ref }}
         GITHUB_REPOSITORY: ${{ github.repository }}
