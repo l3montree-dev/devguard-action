@@ -85,7 +85,7 @@ jobs:
       devguard-token: ${{ secrets.devguard-token }}
   
   call-deploy:
-    needs: call-build-image
+    needs: [call-build-image, call-container-scanning, call-software-compsition-analysis, call-sast, call-secret-scanning]
     uses: ./.github/workflows/deploy.yml
  
 
