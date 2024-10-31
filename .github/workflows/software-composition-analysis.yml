@@ -32,4 +32,4 @@ jobs:
     - name: DevGuard SCA
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8
       with:
-        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.sca-path }}
+        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{secrets.devguard-token}}" --path=${{ inputs.sca-path }}
