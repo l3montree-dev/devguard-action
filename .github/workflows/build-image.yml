@@ -14,7 +14,7 @@ on:
         image-name:
           description: 'oci image name'
           type: string
-          required: true
+          required: false
           default: 'ghcr.io/${{ github.repository }}' 
         context:
           description: 'Path to the oci context'
