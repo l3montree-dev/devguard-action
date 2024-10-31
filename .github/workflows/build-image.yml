@@ -5,40 +5,57 @@ on:
             description: 'Path to the Docker image to be scanned'
             type: string
             required: false
-            default: "/github/workspace/image.tar"   
+            default: "/github/workspace/image.tar"
+        image-tag:
+          description: 'oci image tag'
+          type: string
+          required: false
+
+        image-name:
+          description: 'oci image name'
+          type: string
+          required: true
+          default: 'ghcr.io/${{ github.repository }}' 
+        context:
+          description: 'Path to the oci context'
+          type: string
+          required: false
+          default: "/github/workspace"
+        dockerfile:
+          description: 'Path to the Dockerfile'
+          type: string
+          required: false
+          default: "/github/workspace/Dockerfile"                   
 
 
-env:
-  IMAGE_TAG: ghcr.io/${{ github.repository }}:unstable
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
 
 jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set IMAGE_TAG if tagged
-      # Setting the image tag if the push is a tag push
+
+    - name: Set IMAGE_TAG if inputs.image-tag is set
       run: |
-        echo "ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}" > image-tag.txt
+        echo "${{ inputs.image-tag }}" > image-tag.txt
         export IMAGE_TAG=$(cat image-tag.txt)
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      if: startsWith(github.ref, 'refs/tags/')
-    - name: Set IMAGE_TAG if not tagged
-      run: |
-        branch=${GITHUB_REF##*/}
-        sha=${GITHUB_SHA::8}
-        ts=$(date +%s)
-        echo "ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}" > image-tag.txt
-        export IMAGE_TAG=$(cat image-tag.txt)
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      if: github.ref == 'refs/heads/main'
+      if: ${{ inputs.image-tag }} != ""
+
+    - name: Set IMAGE_TAG 
+      run: ../../set-image-tag.sh
+      env:
+        GITHUB_REF: ${{ github.ref }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
+      if : ${{ inputs.image-tag }} == ""  
+
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} --context=/github/workspace --dockerfile=/github/workspace/Dockerfile --no-push --tarPath ${{ inputs.image-path }}
+        args: --destination=${{ inputs.image-name }} --context=${{ inputs.context }} --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{ inputs.image-path }}
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
     - name: Use crane to get the digest

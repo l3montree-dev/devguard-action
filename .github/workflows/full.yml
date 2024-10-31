@@ -19,21 +19,43 @@ on:
         default: "/github/workspace"
 
       image-path:
-        description: 'Path to the Docker image to be scanned'
+        description: 'Path to the oci image to be scanned'
         type: string
         required: false
-        default: "/github/workspace/image.tar"    
+        default: "/github/workspace/image.tar"   
+      image-tag:
+        description: 'oci image tag'
+        type: string
+        required: false
+
+      image-name:
+        description: 'oci image name'
+        type: string
+        required: true
+        default: 'ghcr.io/${{ github.repository }}'  
+      context:
+        description: 'Path to the oci context'
+        type: string
+        required: false
+        default: "/github/workspace"
+      dockerfile:
+        description: 'Path to the Dockerfile'
+        type: string
+        required: false
+        default: "/github/workspace/Dockerfile"                          
 
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
-
-env:
-  IMAGE_TAG: ghcr.io/${{ github.repository }}:unstable
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
   
 jobs: 
+  call-secret-scanning:
+    uses: ./.github/workflows/secret-scanning.yml
+
+  call-sast:
+    uses: ./.github/workflows/sast.yml
+
   call-software-compsition-analysis:
     uses: ./.github/workflows/software-composition-analysis.yml
     with:
@@ -47,6 +69,10 @@ jobs:
     uses: ./.github/workflows/build-image.yml
     with:
       image-path: ${{ inputs.image-path }}
+      image-tag: ${{ inputs.image-tag }}
+      image-name: ${{ inputs.image-name }}
+      context: ${{ inputs.context }}
+      dockerfile: ${{ inputs.dockerfile }}
 
   call-container-scanning:
     needs: call-build-image
@@ -57,3 +83,8 @@ jobs:
       image-path: ${{ inputs.image-path }}
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
+  
+  call-deploy:
+    needs: call-build-image
+    uses: ./.github/workflows/deploy.yml
+ 

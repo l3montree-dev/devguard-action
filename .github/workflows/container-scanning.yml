@@ -13,17 +13,15 @@ on:
         description: 'Path to the Docker image to be scanned'
         type: string
         required: false
-        default: "/github/workspace/image.tar"    
+        default: "/github/workspace/image.tar" 
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
 
-env:
-  IMAGE_TAG: ghcr.io/${{ github.repository }}:unstable
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
   
-  
+
 jobs: 
   container-scanning:
       runs-on: ubuntu-latest
