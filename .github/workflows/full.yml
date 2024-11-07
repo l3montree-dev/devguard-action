@@ -85,7 +85,7 @@ jobs:
     with:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
-      image-path: ${{ inputs.image-path }}
+      image-path: ${{ inputs.image-destination-path }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
