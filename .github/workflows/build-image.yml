@@ -5,7 +5,7 @@ on:
         description: 'Destination of the image.tar file'
         type: string
         required: false
-        default: "/github/workspace/image.tar"
+        default: "image.tar"
       image:
         description: 'OCI image name, includes the tag name'
         type: string
@@ -14,12 +14,12 @@ on:
         description: 'Path to the oci context'
         type: string
         required: false
-        default: "/github/workspace"
+        default: "."
       dockerfile:
         description: 'Path to the Dockerfile'
         type: string
         required: false
-        default: "/github/workspace/Dockerfile"
+        default: "Dockerfile"
 
 jobs:
   build-image:
@@ -55,8 +55,11 @@ jobs:
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
         args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }}
-          --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{
-          inputs.image-destination-path }}
+          --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath
+          /github/workspace/image.tar
+
+    - name: Move the image.tar to the destination path
+      run: mv image.tar ${{ inputs.image-destination-path }}
 
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1

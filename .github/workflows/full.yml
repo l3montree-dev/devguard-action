@@ -16,7 +16,7 @@ on:
         description: 'Path to the source code to be scanned'
         type: string
         required: false
-        default: "/github/workspace"
+        default: "."
 
       image-destination-path:
         description: 'Path to the oci image to be scanned. Only necessary if deploy
@@ -24,7 +24,7 @@ on:
           processing of the builded image.tar'
         type: string
         required: false
-        default: "/github/workspace/image.tar"
+        default: "image.tar"
 
       image:
         description: 'oci image tag'
@@ -35,13 +35,13 @@ on:
         description: 'Path to the oci context'
         type: string
         required: false
-        default: "/github/workspace"
+        default: "."
 
       dockerfile:
         description: 'Path to the Dockerfile'
         type: string
         required: false
-        default: "/github/workspace/Dockerfile"
+        default: "Dockerfile"
 
       should-deploy:
         description: 'Should the deploy job run - publishing the image to the desired
