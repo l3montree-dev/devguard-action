@@ -1,11 +1,17 @@
 on:
   workflow_call:
-
+    inputs:
+      should-deploy:
+        # Input to determine if the deploy job should run
+        description: 'Should the deploy job run'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    if: ${{ inputs.should-deploy }}
     steps:
     - name: Download oci-image artifact (can be created by build-image)
       uses: actions/download-artifact@v4

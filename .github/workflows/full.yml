@@ -43,6 +43,13 @@ on:
         required: false
         default: "/github/workspace/Dockerfile"
 
+      should-deploy:
+        description: 'Should the deploy job run - publishing the image to the desired
+          Container Registry'
+        type: boolean
+        required: false
+        default: true
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -90,3 +97,5 @@ jobs:
     - call-sast
     - call-secret-scanning
     uses: ./.github/workflows/deploy.yml
+    with:
+      should-deploy: ${{ inputs.should-deploy }}
