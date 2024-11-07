@@ -74,7 +74,7 @@ jobs:
   call-build-image:
     uses: ./.github/workflows/build-image.yml
     with:
-      image-destination-path: ${{ inputs.image-path }}
+      image-destination-path: ${{ inputs.image-destination-path }}
       image: ${{ inputs.image }}
       context: ${{ inputs.context }}
       dockerfile: ${{ inputs.dockerfile }}
