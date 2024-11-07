@@ -62,7 +62,7 @@ jobs:
       uses: imjasonh/setup-crane@v0.1
 
     - name: Use crane to get the digest
-      run: crane digest --tarball=image.tar > digest.txt
+      run: crane digest --tarball=${{ inputs.image-destination-path }} > digest.txt
 
     # Uploading the built Docker image as an artifact
     - name: Upload artifact
