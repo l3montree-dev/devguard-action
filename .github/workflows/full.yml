@@ -1,7 +1,7 @@
 name: Full DevGuard Scan
 on:
   workflow_call:
-    inputs:   
+    inputs:
       asset-name:
         description: 'Name of the asset to be scanned'
         type: string
@@ -10,7 +10,7 @@ on:
       api-url:
         type: string
         required: false
-        default: "https://api.main.devguard.org"  
+        default: "https://api.main.devguard.org"
 
       sca-path:
         description: 'Path to the source code to be scanned'
@@ -19,37 +19,36 @@ on:
         default: "/github/workspace"
 
       image-path:
-        description: 'Path to the oci image to be scanned'
+        description: 'Path to the oci image to be scanned. Only necessary if deploy
+          reusable workflow is not used and you would like to do further
+          processing of the builded image.tar'
         type: string
         required: false
-        default: "/github/workspace/image.tar"   
-      image-tag:
+        default: "/github/workspace/image.tar"
+
+      image:
         description: 'oci image tag'
         type: string
         required: false
 
-      image-name:
-        description: 'oci image name'
-        type: string
-        required: false
-        default: 'ghcr.io/${{ github.repository }}'  
       context:
         description: 'Path to the oci context'
         type: string
         required: false
         default: "/github/workspace"
+
       dockerfile:
         description: 'Path to the Dockerfile'
         type: string
         required: false
-        default: "/github/workspace/Dockerfile"                          
+        default: "/github/workspace/Dockerfile"
 
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
-  
-jobs: 
+
+jobs:
   call-secret-scanning:
     uses: ./.github/workflows/secret-scanning.yml
 
@@ -64,13 +63,12 @@ jobs:
       sca-path: ${{ inputs.sca-path }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
-   
+
   call-build-image:
     uses: ./.github/workflows/build-image.yml
     with:
       image-path: ${{ inputs.image-path }}
-      image-tag: ${{ inputs.image-tag }}
-      image-name: ${{ inputs.image-name }}
+      image: ${{ inputs.image }}
       context: ${{ inputs.context }}
       dockerfile: ${{ inputs.dockerfile }}
 
@@ -83,11 +81,12 @@ jobs:
       image-path: ${{ inputs.image-path }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
-  
+
   call-deploy:
-    needs: [call-build-image, call-container-scanning, call-software-compsition-analysis, call-sast, call-secret-scanning]
+    needs:
+    - call-build-image
+    - call-container-scanning
+    - call-software-compsition-analysis
+    - call-sast
+    - call-secret-scanning
     uses: ./.github/workflows/deploy.yml
- 
-
-
-

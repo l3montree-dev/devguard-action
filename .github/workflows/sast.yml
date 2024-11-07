@@ -1,17 +1,21 @@
 on:
   workflow_call:
 
-jobs:     
+
+jobs:
   sast:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
     - name: Run Semgrep
       # Running Semgrep for static code analysis to identify security issues
       uses: docker://returntocorp/semgrep
       with:
-        args: semgrep scan /github/workspace --sarif -o /github/workspace/semgrep.sarif.json
+        args: semgrep scan /github/workspace --sarif -o
+          /github/workspace/semgrep.sarif.json
+
     - name: Upload sarif file
       uses: github/codeql-action/upload-sarif@v3
       with:

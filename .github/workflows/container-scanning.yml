@@ -1,6 +1,6 @@
 on:
   workflow_call:
-    inputs:    
+    inputs:
       asset-name:
         description: 'Name of the asset to be scanned'
         type: string
@@ -8,37 +8,39 @@ on:
       api-url:
         type: string
         required: false
-        default: "https://api.main.devguard.org"  
+        default: "https://api.main.devguard.org"
       image-path:
         description: 'Path to the Docker image to be scanned'
         type: string
         required: false
-        default: "/github/workspace/image.tar" 
+        default: "/github/workspace/image.tar"
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
 
-
-  
-
-jobs: 
+jobs:
   container-scanning:
-      runs-on: ubuntu-latest
-      #needs: build-image
-      steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-          path: .
-      # Running Trivy to scan the Docker image for vulnerabilities
-      - name: Set up Git
-        run: |
-          git config --global --add safe.directory /github/workspace
-      - name: DevGuard Container-Scanning
-        uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8
-        with:
-          args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{secrets.devguard-token}}" --path=${{inputs.image-path}}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download Docker image - if exists (gets created by build-image). If running this workflow independently, the image must be built first and provided as an artifact with the name 'oci-image'. See build-image.yml for more details.
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: oci-image
+        path: .
+    
+    - name: Set up Git (necessary for devguard version detection)
+      run: |
+        git config --global --add safe.directory /github/workspace
+
+    - name: DevGuard Container-Scanning
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:55736b9dc029762131ea31b7d5ec7a108f07df114520fefa82df28132f554ab8
+      with:
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{inputs.image-path}}

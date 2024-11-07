@@ -1,88 +1,84 @@
 on:
   workflow_call:
     inputs:
-        image-path:
-            description: 'Path to the Docker image to be scanned'
-            type: string
-            required: false
-            default: "/github/workspace/image.tar"
-        image-tag:
-          description: 'oci image tag'
-          type: string
-          required: false
-
-        image-name:
-          description: 'oci image name'
-          type: string
-          required: false
-          default: 'ghcr.io/${{ github.repository }}' 
-        context:
-          description: 'Path to the oci context'
-          type: string
-          required: false
-          default: "/github/workspace"
-        dockerfile:
-          description: 'Path to the Dockerfile'
-          type: string
-          required: false
-          default: "/github/workspace/Dockerfile"                   
-
-
-
+      destination-image-path:
+        description: 'Destination of the image.tar file'
+        type: string
+        required: false
+        default: "/github/workspace/image.tar"
+      image:
+        description: 'OCI image name, includes the tag name'
+        type: string
+        required: false
+      context:
+        description: 'Path to the oci context'
+        type: string
+        required: false
+        default: "/github/workspace"
+      dockerfile:
+        description: 'Path to the Dockerfile'
+        type: string
+        required: false
+        default: "/github/workspace/Dockerfile"
 
 jobs:
   build-image:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set IMAGE_TAG if inputs.image-tag is set
+    # Calculate a tag name
+    # If the image input is provided, use it as the tag
+    # If the workflow is triggered by a tag, use the tag as the tag
+    # Otherwise built GitOps compatible tags. Fallback to the branch name, commit hash, and timestamp. Those tags are sortable and  unique.
+    - name: Set IMAGE_TAG
       run: |
-        echo "${{ inputs.image-tag }}" > image-tag.txt
-        export IMAGE_TAG=$(cat image-tag.txt)
-      if: ${{ inputs.image-tag }} != ""
-
-    - name: Set IMAGE_TAG if tagged
-      # Setting the image tag if the push is a tag push
-      run: |
-        echo "ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}" > image-tag.txt
-        export IMAGE_TAG=$(cat image-tag.txt)
-      if: startsWith(github.ref, 'refs/tags/') && inputs.image-tag == ''
-
-    - name: Set IMAGE_TAG if not tagged
-      run: |
-        branch=${GITHUB_REF##*/}
-        sha=${GITHUB_SHA::8}
-        ts=$(date +%s)
-        echo "ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}" > image-tag.txt
-        export IMAGE_TAG=$(cat image-tag.txt)
-      if: github.ref == 'refs/heads/main' && inputs.image-tag == ''
+        if [ "${{ inputs.image }}" != "" ]; then
+          IMAGE_TAG="${{ inputs.image }}"
+        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          IMAGE_TAG="ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}"
+        else
+          branch=${GITHUB_REF##*/}
+          sha=${GITHUB_SHA::8}
+          ts=$(date +%s)
+          IMAGE_TAG="ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}"
+        fi
+        echo "$IMAGE_TAG" > image-tag.txt
 
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ inputs.image-name }} --context=${{ inputs.context }} --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{ inputs.image-path }}
+        args: --destination=$(cat image-tag.txt) --context=${{ inputs.context }}
+          --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{
+          inputs.destination-image-path }}
+
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
+
     - name: Use crane to get the digest
       run: crane digest --tarball=image.tar > digest.txt
+
+    # Uploading the built Docker image as an artifact
     - name: Upload artifact
-      # Uploading the built Docker image as an artifact
       uses: actions/upload-artifact@v4
       with:
-        name: docker-image
-        path: image.tar
+        name: oci-image
+        path: ${{ inputs.destination-image-path }}
+
+    # Uploading the built Docker image digest as an artifact
     - name: Upload digest
-      # Uploading the built Docker image digest as an artifact
       uses: actions/upload-artifact@v4
       with:
         name: digest
         path: digest.txt
+
+    # Upload the calculated image tag as an artifact
     - name: Upload image tag
       uses: actions/upload-artifact@v4
       with:
         name: image-tag
-        path: image-tag.txt      
+        path: image-tag.txt

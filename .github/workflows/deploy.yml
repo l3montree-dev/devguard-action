@@ -1,20 +1,26 @@
 on:
   workflow_call:
 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     steps:
-    - uses: actions/download-artifact@v4
+    - name: Download oci-image artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
       with:
-        name: docker-image
+        name: oci-image
         path: .
-    - uses: actions/download-artifact@v4
+
+    - name: Download image-tag artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
       with:
         name: image-tag
         path: .
-    - uses: imjasonh/setup-crane@v0.1
+
+    - name: Setup crane
+      uses: imjasonh/setup-crane@v0.1
+
     - name: Push oci image to GitHub image Registry
-      # Pushing the Docker image to GitHub Container Registry
-      run: crane push image.tar $(cat image-tag.txt)   
+      run: crane push image.tar $(cat image-tag.txt)
