@@ -46,12 +46,15 @@ jobs:
         fi
         echo "$IMAGE_TAG" > image-tag.txt
 
+        # necessary for the kaniko job
+        echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=$(cat image-tag.txt) --context=${{ inputs.context }}
+        args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }}
           --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{
           inputs.image-destination-path }}
 
