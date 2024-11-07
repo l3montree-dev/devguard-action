@@ -56,10 +56,10 @@ jobs:
       with:
         args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }}
           --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath
-          /github/workspace/image.tar
+          /github/workspace/tmp-image.tar
 
     - name: Move the image.tar to the destination path
-      run: mv image.tar ${{ inputs.image-destination-path }}
+      run: mv tmp-image.tar ${{ inputs.image-destination-path }}
 
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
