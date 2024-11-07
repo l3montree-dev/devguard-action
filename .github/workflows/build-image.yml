@@ -1,7 +1,7 @@
 on:
   workflow_call:
     inputs:
-      destination-image-path:
+      image-destination-path:
         description: 'Destination of the image.tar file'
         type: string
         required: false
@@ -54,7 +54,7 @@ jobs:
       with:
         args: --destination=$(cat image-tag.txt) --context=${{ inputs.context }}
           --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath ${{
-          inputs.destination-image-path }}
+          inputs.image-destination-path }}
 
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
@@ -67,7 +67,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: oci-image
-        path: ${{ inputs.destination-image-path }}
+        path: ${{ inputs.image-destination-path }}
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest

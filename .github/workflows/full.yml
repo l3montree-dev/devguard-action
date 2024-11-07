@@ -18,7 +18,7 @@ on:
         required: false
         default: "/github/workspace"
 
-      image-path:
+      image-destination-path:
         description: 'Path to the oci image to be scanned. Only necessary if deploy
           reusable workflow is not used and you would like to do further
           processing of the builded image.tar'
@@ -67,7 +67,7 @@ jobs:
   call-build-image:
     uses: ./.github/workflows/build-image.yml
     with:
-      image-path: ${{ inputs.image-path }}
+      image-destination-path: ${{ inputs.image-path }}
       image: ${{ inputs.image }}
       context: ${{ inputs.context }}
       dockerfile: ${{ inputs.dockerfile }}
