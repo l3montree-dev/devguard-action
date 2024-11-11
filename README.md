@@ -54,14 +54,14 @@ The reusable workflow accepts the following inputs:
 
 | Name                   | Description                                                                   | Required    | Default Value                                    | Workflows Using This Input                               |
 |------------------------|--------------------------------------------------------------------------------------|-------------|-------------------------------------------------|----------------------------------------------------------|
-| `asset-name`            | Name of the asset to be scanned                                               | Yes         |                                                 | SCA, Container Scanning, Full Scan                                              |
-| `api-url`               | URL of the DevGuard API                                                       | No          | `https://api.main.devguard.org`                 |             SCA, Container Scanning, Full Scan                           |
-| `sca-path`              | Path to the source code to be scanned                                         | No          | `.`                                              | SCA, Full Scan                                           |
-| `image-destination-path`| Path to the OCI image to be scanned. Only necessary if the reusable workflow is not used for further processing of the built image.tar | No          | `image.tar`                                      | Image Scanning (when not using reusable workflow)        |
-| `image`                 | OCI image tag                                                                  | No          |                                                 | Container Scanning, Full Scan                           |
-| `context`               | Path to the OCI context                                                       | No          | `.`                                              | Container Scanning, Full Scan, Image Processing          |
-| `dockerfile`            | Path to the Dockerfile                                                        | No          | `Dockerfile`                                     | Full Scan, Container Scanning                            |
-| `should-deploy`         | Whether the deploy job should run, publishing the image to the desired Container Registry | No          | `true`                                           | Deployment Workflow (when deploying images)             |
+| `asset-name`            | Name of the asset to be scanned                                               | Yes         |                                                 | SCA, Container Scanning                                              |
+| `api-url`               | URL of the DevGuard API                                                       | No          | `https://api.main.devguard.org`                 |             SCA, Container Scanning                          |
+| `sca-path`              | Path to the source code to be scanned                                         | No          | `.`                                              | SCA                                           |
+| `image-destination-path`| Path to the OCI image to be scanned. Only necessary if the reusable workflow is not used for further processing of the built image.tar | No          | `image.tar`                                      | Build-image        |
+| `image`                 | OCI image tag                                                                  | No          |                                                 |  Build-image                           |
+| `context`               | Path to the OCI context                                                       | No          | `.`                                              | Build-image          |
+| `dockerfile`            | Path to the Dockerfile                                                        | No          | `Dockerfile`                                     |  Build-image                            |
+| `should-deploy`         | Whether the deploy job should run, publishing the image to the desired Container Registry | No          | `true`                                           |  deploy            |
 
 
 
