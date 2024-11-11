@@ -6,21 +6,64 @@ You can see how DevGuard works in practice [here](https://main.devguard.org/l3mo
 
 Read more about DevGuard and its features [here](https://github.com/l3montree-dev/devguard).
 
-## Workflow Overview
+## Workflows Overview
 
-The DevGuard workflow provides various scanning capabilities to protect your applications. You can specify the type of scan, the asset to scan, and customize parameters to fit your project requirements.
+The DevGuard workflow automates the process of ensuring security, quality, and efficiency throughout the development and deployment pipeline. It integrates various security and build-related tasks to enhance the integrity of your code and container images before deployment. Below is a breakdown of the individual jobs included in the workflow:
 
-### Workflow Inputs
+
+## Jobs in the Workflow
+
+The workflow includes the following jobs:
+
+
+### secret-scanning
+The `secret-scanning` workflow is designed to identify sensitive information such as API keys, passwords, and other secrets within your codebase. By integrating secret scanning into your CI/CD pipeline, developers can proactively prevent the accidental exposure of confidential data, enhancing the overall security posture of the application.
+
+
+### sast
+The `sast` component focuses on Static Application Security Testing (SAST) to analyze your source code for vulnerabilities without executing it. This component helps in identifying security flaws early in the development cycle, ensuring that code quality and security are prioritized before deployment.
+
+
+### software composition analysis (SCA)
+
+The `software-composition-analysis` workflow performs Software Composition Analysis (SCA) to detect vulnerabilities in your project’s dependencies. It scans your software for outdated or vulnerable third-party libraries, helping you manage risks early in the development process.
+
+
+### build image
+This workflow uses Kaniko to build and archive a Docker image. The image tag is created based on user inputs, Git tags, or commit information. The image is built, saved as a `.tar` file, and the digest is retrieved using crane. Finally, the image, tag, and digest are uploaded as artifacts. To use this component, you need to have a `Dockerfile` in your repository's root directory.
+
+
+
+### container-scanning
+The `container-scanning` component scans your container images for vulnerabilities. This ensures that your Docker images do not contain known vulnerabilities before they are deployed. 
+
+
+### deploy
+
+The devguard-deploy component deploys the created OCI (Open Container Initiative) image to the GitLab container registry. This ensures that your images are securely stored and ready for deployment in your infrastructure.
+The `deploy` workflow can only be executed if the following prerequisites run successfully: build-image, container-scanning, software-composition-analysis, sast, and secret-scanning.
+
+
+## Full DevGuard Scan
+
+You can run all the previous jobs by calling the Full DevGuard Scan workflow.
+
+### Full DevGuard Scan Workflow Inputs
 
 The reusable workflow accepts the following inputs:
 
-| Name        | Description                                           | Required | Default Value                                |
-|-------------|-------------------------------------------------------|----------|----------------------------------------------|
-| `scan-type` | Type of scan to be performed (options: `full`, `sca`, `container-scanning`) | No      | `full`                                       |
-| `asset-name`| Name of the asset to be scanned                      | Yes      |                                              |
-| `api-url`   | URL of the DevGuard API                               | No       | `https://api.main.devguard.org`             |
-| `sca-path`  | Path to the source code to be scanned                 | No       | `/github/workspace`                          |
-| `image-path`| Path to the Docker image to be scanned                 | No       | `/github/workspace/image.tar`                |
+| Name                   | Description                                                                   | Required    | Default Value                                    | Workflows Using This Input                               |
+|------------------------|--------------------------------------------------------------------------------------|-------------|-------------------------------------------------|----------------------------------------------------------|
+| `asset-name`            | Name of the asset to be scanned                                               | Yes         |                                                 | SCA, Container Scanning, Full Scan                                              |
+| `api-url`               | URL of the DevGuard API                                                       | No          | `https://api.main.devguard.org`                 |             SCA, Container Scanning, Full Scan                           |
+| `sca-path`              | Path to the source code to be scanned                                         | No          | `.`                                              | SCA, Full Scan                                           |
+| `image-destination-path`| Path to the OCI image to be scanned. Only necessary if the reusable workflow is not used for further processing of the built image.tar | No          | `image.tar`                                      | Image Scanning (when not using reusable workflow)        |
+| `image`                 | OCI image tag                                                                  | No          |                                                 | Container Scanning, Full Scan                           |
+| `context`               | Path to the OCI context                                                       | No          | `.`                                              | Container Scanning, Full Scan, Image Processing          |
+| `dockerfile`            | Path to the Dockerfile                                                        | No          | `Dockerfile`                                     | Full Scan, Container Scanning                            |
+| `should-deploy`         | Whether the deploy job should run, publishing the image to the desired Container Registry | No          | `true`                                           | Deployment Workflow (when deploying images)             |
+
+
 
 ### Secrets
 
@@ -30,19 +73,8 @@ To authenticate with the DevGuard API, the following secret is required:
 |-------------------|--------------------------------------|----------|
 | `devguard-token`  | DevGuard API token                   | Yes      |
 
-## Jobs in the Workflow
 
-The workflow includes the following jobs:
 
-### software composition analysis (SCA)
-
-This job runs SCA to detect vulnerabilities in your project’s dependencies. It only executes if the `scan-type` is set to `sca` or `full`.
-
-### docker image build
-This job builds your Docker image and is triggered if the `scan-type` is set to `container-scanning` or `full`.
-
-### container-scanning
-This job scans the built Docker image for vulnerabilities using the DevGuard Container-Scanning component. It only executes triggered if the `scan-type` is set to `container-scanning` or `full` and it runs after the image has been built.
 
 ### Usage Example
 Here’s an example of how to call this reusable workflow from another workflow file:
@@ -53,7 +85,7 @@ on:
 
 jobs:
   vulnerability-scan:
-    uses: l3montree-dev/devguard-action/.github/workflows/devguard-workflow.yml@main
+    uses: l3montree-dev/devguard-action/.github/workflows/full.yml@main
     with:
       asset-name: 'my-application'
     secrets:
