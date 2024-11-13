@@ -54,9 +54,7 @@ jobs:
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }}
-          --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath
-          /github/workspace/tmp-image.tar
+        args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }} --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath /github/workspace/tmp-image.tar
 
     - name: Move the image.tar to the destination path
       run: mv tmp-image.tar ${{ inputs.image-destination-path }}
@@ -65,7 +63,7 @@ jobs:
       uses: imjasonh/setup-crane@v0.1
 
     - name: Use crane to get the digest
-      run: crane digest --tarball=${{ inputs.image-destination-path }} > digest.txt
+      run: crane digest --tarball=${{ inputs.image-destination-path }} > image-digest.txt
 
     # Uploading the built Docker image as an artifact
     - name: Upload artifact
@@ -78,8 +76,8 @@ jobs:
     - name: Upload digest
       uses: actions/upload-artifact@v4
       with:
-        name: digest
-        path: digest.txt
+        name: image-digest
+        path: image-digest.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag

@@ -1,0 +1,27 @@
+on:
+  workflow_call:
+
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download image-tag artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
+      with:
+        name: image-tag
+        path: .
+
+    - name: Download image-digest artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
+      with:
+        name: image-digest
+        path: .
+
+    - name: DevGuard Container-Scanning
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:b6507a1f4eea9bf4189e916f71fec8dc0ceb220429bc81893a04de570c6d55eb
+      with:
+        args: devguard-scanner sign --token="${{ secrets.devguard-token }}" "$(cat image-tag.txt)@$(cat image-digest.txt)"
