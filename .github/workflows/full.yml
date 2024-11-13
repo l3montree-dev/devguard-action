@@ -105,3 +105,5 @@ jobs:
     - call-sast
     - call-secret-scanning
     uses: ./.github/workflows/sign.yml
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
