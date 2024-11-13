@@ -35,6 +35,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: DevGuard Image-Signing
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:b6507a1f4eea9bf4189e916f71fec8dc0ceb220429bc81893a04de570c6d55eb
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:3174c639199d9d5b5667a6c48a9fcc65fad31870f69993c79abe55caf6234b23
       with:
-        args: devguard-scanner sign --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }}
+        args: devguard-scanner sign -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }}
