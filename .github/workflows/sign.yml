@@ -25,9 +25,9 @@ jobs:
         path: .
 
     - name: Set Image to be signed
-      run: echo $(cat image-tag.txt)@$(cat image-digest.txt) > image-to-sign.txt
+      run: echo "IMAGE_TAG_AND_DIGEST=$(cat image-tag.txt)@$(cat image-digest.txt)" >> $GITHUB_ENV
 
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:b6507a1f4eea9bf4189e916f71fec8dc0ceb220429bc81893a04de570c6d55eb
       with:
-        args: devguard-scanner sign --token="${{ secrets.devguard-token }}" $(cat image-to-sign.txt)
+        args: devguard-scanner sign --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }}
