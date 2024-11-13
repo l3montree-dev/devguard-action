@@ -19,9 +19,7 @@ on:
         default: "."
 
       image-destination-path:
-        description: 'Path to the oci image to be scanned. Only necessary if deploy
-          reusable workflow is not used and you would like to do further
-          processing of the builded image.tar'
+        description: 'Path to the oci image to be scanned. Only necessary if deploy reusable workflow is not used and you would like to do further processing of the builded image.tar'
         type: string
         required: false
         default: "image.tar"
@@ -44,8 +42,7 @@ on:
         default: "Dockerfile"
 
       should-deploy:
-        description: 'Should the deploy job run - publishing the image to the desired
-          Container Registry'
+        description: 'Should the deploy job run - publishing the image to the desired Container Registry'
         type: boolean
         required: false
         default: true
@@ -99,3 +96,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
+
+  call-sign:
+    needs:
+    - call-build-image
+    uses: ./.github/workflows/sign.yml

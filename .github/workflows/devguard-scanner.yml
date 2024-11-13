@@ -1,0 +1,18 @@
+# DevSecOps Workflow Definition
+# This workflow is triggered on every push to the repository
+name: DevGuard Workflow
+
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - '*'
+
+jobs:
+  devguard-scanner:
+    uses: l3montree-dev/devguard-action/.github/workflows/full.yml@main
+    with:
+      asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
