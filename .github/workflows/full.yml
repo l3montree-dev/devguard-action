@@ -100,4 +100,8 @@ jobs:
   call-sign:
     needs:
     - call-build-image
+    - call-container-scanning
+    - call-software-compsition-analysis
+    - call-sast
+    - call-secret-scanning
     uses: ./.github/workflows/sign.yml
