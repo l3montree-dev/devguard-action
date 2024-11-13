@@ -1,6 +1,9 @@
 on:
   workflow_call:
-
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
 
 jobs:
   sign:
