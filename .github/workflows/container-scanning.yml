@@ -55,11 +55,7 @@ jobs:
         name: oci-image
         path: .
 
-    - name: Set up Git (necessary for devguard version detection)
-      run: |
-        git config --global --add safe.directory /github/workspace
-
     - name: DevGuard Container-Scanning
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:3174c639199d9d5b5667a6c48a9fcc65fad31870f69993c79abe55caf6234b23
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:bd4a48bcd602ec6c1fcca2c7f07267f206e737b1da6654198167aaa12a4eebc7
       with:
         args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --riskManagement=${{ env.risk-management }}
