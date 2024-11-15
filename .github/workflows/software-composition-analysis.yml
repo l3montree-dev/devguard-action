@@ -14,6 +14,12 @@ on:
         type: string
         required: false
         default: "."
+      risk-management:
+        description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
+        type: string
+        required: false
+        default: 'null'
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -26,10 +32,26 @@ jobs:
       with:
         fetch-depth: 0
       uses: actions/checkout@v4 # Check out the repository content to the runner
+
+    - name: Determine risk-management value
+      id: set-risk
+      run: |
+        if [[ "${{ github.event.inputs.risk-management }}" != "null" ]]; then
+          # Respect the manually provided input
+          echo "risk-management=${{ github.event.inputs.risk-management }}" >> $GITHUB_ENV
+        else
+          # Set risk-management based on branch or tag if not manually provided
+          if [[ "${{ github.ref }}" == "refs/heads/${{ github.event.repository.default_branch }}" || "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "risk-management=true" >> $GITHUB_ENV
+          else
+            echo "risk-management=false" >> $GITHUB_ENV
+          fi
+        fi
+
     - name: Set up Git
       run: |
         git config --global --add safe.directory /github/workspace
     - name: DevGuard SCA
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:3174c639199d9d5b5667a6c48a9fcc65fad31870f69993c79abe55caf6234b23
       with:
-        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.sca-path }}
+        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.sca-path }} --riskManagement=${{ env.risk-management }}
