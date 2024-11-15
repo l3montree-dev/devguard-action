@@ -107,5 +107,6 @@ jobs:
     uses: ./.github/workflows/sign.yml
     with:
       api-url: ${{ inputs.api-url }}
+      asset-name: ${{ inputs.asset-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}

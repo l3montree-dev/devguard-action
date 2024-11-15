@@ -5,6 +5,10 @@ on:
         type: string
         required: false
         default: "https://api.main.devguard.org"
+      asset-name:
+        description: 'Name of the asset'
+        type: string
+        required: true
 
     secrets:
       devguard-token:
@@ -36,4 +40,4 @@ jobs:
     - name: DevGuard Image-Signing
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:919776f385f27e632c3be25b03dbc4186e9d98578742b94c51c29862b5440106
       with:
-        args: devguard-scanner sign -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }} --apiUrl=${{ inputs.api-url }}
+        args: devguard-scanner sign -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }}
