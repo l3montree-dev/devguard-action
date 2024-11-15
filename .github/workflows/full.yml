@@ -105,5 +105,7 @@ jobs:
     - call-sast
     - call-secret-scanning
     uses: ./.github/workflows/sign.yml
+    with:
+      api-url: ${{ inputs.api-url }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
