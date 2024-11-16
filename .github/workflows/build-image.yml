@@ -10,6 +10,11 @@ on:
         description: 'OCI image name, includes the tag name'
         type: string
         required: false
+      image-suffix:
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
+        type: string
+        required: false
+        default: ""
       context:
         description: 'Path to the oci context'
         type: string
@@ -20,6 +25,11 @@ on:
         type: string
         required: false
         default: "Dockerfile"
+      artifact-prefix:
+        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
+        type: string
+        required: false
+        default: ""
 
 jobs:
   build-image:
@@ -37,12 +47,12 @@ jobs:
         if [ "${{ inputs.image }}" != "" ]; then
           IMAGE_TAG="${{ inputs.image }}"
         elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          IMAGE_TAG="ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}"
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}:${GITHUB_REF#refs/tags/}"
         else
           branch=${GITHUB_REF##*/}
           sha=${GITHUB_SHA::8}
           ts=$(date +%s)
-          IMAGE_TAG="ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}"
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}:${branch}-${sha}-${ts}"
         fi
         echo "$IMAGE_TAG" > image-tag.txt
 
@@ -69,19 +79,19 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: oci-image
+        name: ${{ inputs.artifact-prefix }}oci-image
         path: ${{ inputs.image-destination-path }}
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
       uses: actions/upload-artifact@v4
       with:
-        name: image-digest
+        name: ${{ inputs.artifact-prefix }}image-digest
         path: image-digest.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
       uses: actions/upload-artifact@v4
       with:
-        name: image-tag
+        name: ${{ inputs.artifact-prefix }}image-tag
         path: image-tag.txt

@@ -7,6 +7,12 @@ on:
         type: boolean
         required: false
         default: true
+      artefact-prefix:
+        # Prefix for the artifacts
+        description: 'Prefix of the artifacts. This is only needed if you are using this job multiple times in the same workflow. For example if you are deploying multiple images with different configuration.'
+        type: string
+        required: false
+        default: ''
 
 jobs:
   deploy:
