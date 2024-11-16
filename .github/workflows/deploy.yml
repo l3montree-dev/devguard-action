@@ -7,7 +7,7 @@ on:
         type: boolean
         required: false
         default: true
-      artefact-suffix:
+      artifact-suffix:
         # Prefix for the artifacts
         description: 'Prefix of the artifacts. This is only needed if you are using this job multiple times in the same workflow. For example if you are deploying multiple images with different configuration.'
         type: string
@@ -22,13 +22,13 @@ jobs:
     - name: Download oci-image artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: oci-image${{ inputs.artefact-suffix }}
+        name: oci-image${{ inputs.artifact-suffix }}
         path: .
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artefact-suffix }}
+        name: image-tag${{ inputs.artifact-suffix }}
         path: .
 
     - name: Setup crane
