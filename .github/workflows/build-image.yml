@@ -25,7 +25,7 @@ on:
         type: string
         required: false
         default: "Dockerfile"
-      artifact-prefix:
+      artifact-suffix:
         description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
         type: string
         required: false
@@ -79,19 +79,19 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-prefix }}oci-image
+        name: oci-image${{ inputs.artifact-suffix }}
         path: ${{ inputs.image-destination-path }}
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-prefix }}image-digest
+        name: image-digest${{ inputs.artifact-suffix }}
         path: image-digest.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-prefix }}image-tag
+        name: image-tag${{ inputs.artifact-suffix }}
         path: image-tag.txt
