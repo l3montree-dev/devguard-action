@@ -77,6 +77,8 @@ jobs:
       dockerfile: ${{ inputs.dockerfile }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
 
   call-container-scanning:
     needs: call-build-image
