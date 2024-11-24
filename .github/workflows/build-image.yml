@@ -10,6 +10,15 @@ on:
         description: 'OCI image name, includes the tag name'
         type: string
         required: false
+      asset-name:
+        description: 'Name of the asset'
+        type: string
+        required: true
+      api-url:
+        description: 'URL of the DevGuard API'
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"
       image-suffix:
         description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
         type: string
@@ -37,6 +46,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: In-Toto Provenance record start
+      id: in-toto-start
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      with:
+        args: devguard-scanner intoto start --step=build --token ${{ secrets.DEVGUARD_TOKEN }}
 
     # Calculate a tag name
     # If the image input is provided, use it as the tag
@@ -95,3 +110,25 @@ jobs:
       with:
         name: image-tag${{ inputs.artifact-suffix }}
         path: image-tag.txt
+
+    - name: In-Toto Provenance record stop
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      with:
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token ${{ secrets.DEVGUARD_TOKEN }}
+
+    - name: Try to download the git-commit metadata to include it in the artifacts
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      with:
+        args: devguard-scanner intoto fetch-link --opaqueIdentifier=$GITHUB_SHA --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token=${{ secrets.DEVGUARD_TOKEN }}
+
+    - name: Upload in-toto metadata
+      uses: actions/upload-artifact@v4
+      with:
+        name: in-toto-build-link
+        path: build.????????.link
+
+    - name: Upload in-toto metadata
+      uses: actions/upload-artifact@v4
+      with:
+        name: in-toto-post-commit-link
+        path: post-commit.????????.link
