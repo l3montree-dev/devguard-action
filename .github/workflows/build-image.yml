@@ -49,7 +49,7 @@ jobs:
 
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
       with:
         args: devguard-scanner intoto start --step=build --token ${{ secrets.DEVGUARD_TOKEN }}
 
@@ -112,12 +112,12 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token ${{ secrets.DEVGUARD_TOKEN }}
 
     - name: Try to download the git-commit metadata to include it in the artifacts
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@main-b9af2deb-1732428919
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
       with:
         args: devguard-scanner intoto fetch-link --opaqueIdentifier=$GITHUB_SHA --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token=${{ secrets.DEVGUARD_TOKEN }}
 
