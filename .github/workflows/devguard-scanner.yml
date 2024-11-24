@@ -8,7 +8,7 @@ on:
 
 jobs:
   devguard-scanner:
-    uses: l3montree-dev/devguard-action/.github/workflows/full.yml@main
+    uses: ./.github/workflows/full.yml
     with:
       asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
     secrets:
