@@ -1,6 +1,15 @@
 on:
   workflow_call:
     inputs:
+      asset-name:
+        description: 'Name of the asset to be deployed'
+        type: string
+        required: true
+      api-url:
+        description: 'URL of the DevGuard API'
+        type: string
+        required: false
+        default: 'https://api.main.devguard.org'
       should-deploy:
         # Input to determine if the deploy job should run
         description: 'Should the deploy job run'
@@ -13,6 +22,10 @@ on:
         type: string
         required: false
         default: ''
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
 
 jobs:
   deploy:
@@ -30,6 +43,11 @@ jobs:
       with:
         name: image-tag${{ inputs.artifact-suffix }}
         path: .
+
+    - name: In-Toto Provenance run
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-8c0b4fe6-1732432851
+      with:
+        args: devguard-scanner intoto run --step=deploy --materials=image.tar --materials=image-tag.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }}
 
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1

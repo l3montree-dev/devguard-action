@@ -53,7 +53,7 @@ jobs:
 
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-8c0b4fe6-1732432851
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }}
 
@@ -116,25 +116,12 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-8c0b4fe6-1732432851
       with:
-        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }}
-
-    - name: Try to download the git-commit metadata to include it in the artifacts
-      continue-on-error: true # This is needed because the git-commit metadata might not exist
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
-      with:
-        args: devguard-scanner intoto fetch-link --opaqueIdentifier=$GITHUB_SHA --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token=${{ secrets.devguard-token }}
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }}
 
     - name: Upload in-toto metadata
       uses: actions/upload-artifact@v4
       with:
         name: in-toto-build-link
         path: build.????????.link
-
-    - name: Upload in-toto metadata
-      uses: actions/upload-artifact@v4
-      continue-on-error: true
-      with:
-        name: in-toto-post-commit-link
-        path: post-commit.????????.link
