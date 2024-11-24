@@ -119,9 +119,3 @@ jobs:
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-70772c72-1732436188
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=$GITHUB_SHA
-
-    - name: Upload in-toto metadata
-      uses: actions/upload-artifact@v4
-      with:
-        name: in-toto-build-link
-        path: build.????????.link
