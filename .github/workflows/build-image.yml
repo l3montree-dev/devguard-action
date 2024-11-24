@@ -121,6 +121,7 @@ jobs:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }}
 
     - name: Try to download the git-commit metadata to include it in the artifacts
+      continue-on-error: true # This is needed because the git-commit metadata might not exist
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-b9af2deb-1732428919
       with:
         args: devguard-scanner intoto fetch-link --opaqueIdentifier=$GITHUB_SHA --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token=${{ secrets.devguard-token }}
@@ -133,6 +134,7 @@ jobs:
 
     - name: Upload in-toto metadata
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: in-toto-post-commit-link
         path: post-commit.????????.link
