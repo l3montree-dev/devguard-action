@@ -55,7 +55,7 @@ jobs:
       id: in-toto-start
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --supplyChainId=${{ github.sha }}
+        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
 
     # Calculate a tag name
     # If the image input is provided, use it as the tag
