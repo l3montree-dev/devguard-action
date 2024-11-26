@@ -53,7 +53,7 @@ jobs:
 
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-70772c72-1732436188
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --supplyChainId=${{ github.sha }}
 
@@ -116,6 +116,6 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-70772c72-1732436188
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}

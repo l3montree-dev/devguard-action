@@ -51,7 +51,7 @@ jobs:
         path: .
 
     - name: In-Toto Provenance run
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-70772c72-1732436188
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: devguard-scanner intoto run --step=deploy --materials=image.tar --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
 
@@ -64,4 +64,4 @@ jobs:
     - name: Push oci image to GitHub image Registry with latest 
       run: |
         branch=${GITHUB_REF##*/}
-        crane push image.tar $branch-latest
+        crane push image.tar "$branch-latest"

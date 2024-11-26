@@ -14,41 +14,24 @@ on:
         type: string
         required: false
         default: "."
-      risk-management:
-        description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
-        type: string
-        required: false
-        default: 'null'
-
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
 jobs:
-  software-composition-analysis:
+  sca:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       with:
         fetch-depth: 0
       uses: actions/checkout@v4 # Check out the repository content to the runner
-
-    - name: Determine risk-management value
-      id: set-risk
+    - name: Set up Git
       run: |
-        if [[ "${{ inputs.risk-management }}" != "null" ]]; then
-          # Respect the manually provided input
-          echo "risk-management=${{ inputs.risk-management }}" >> $GITHUB_ENV
-        else
-          # Set risk-management based on branch or tag if not manually provided
-          if [[ "${{ github.ref }}" == "refs/heads/${{ github.event.repository.default_branch }}" || "${{ github.ref }}" == refs/tags/* ]]; then
-            echo "risk-management=true" >> $GITHUB_ENV
-          else
-            echo "risk-management=false" >> $GITHUB_ENV
-          fi
-        fi
-
+        git config --global --add safe.directory /github/workspace
     - name: DevGuard SCA
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner@sha256:919776f385f27e632c3be25b03dbc4186e9d98578742b94c51c29862b5440106
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.sca-path }} --riskManagement=${{ env.risk-management }}
+        args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{
+          inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{
+          inputs.sca-path }}
