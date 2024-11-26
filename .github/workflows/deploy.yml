@@ -22,6 +22,12 @@ on:
         type: string
         required: false
         default: ''
+      image-suffix:
+        # Suffix for the image name
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
+        type: string
+        required: false
+        default: ''
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -64,4 +70,4 @@ jobs:
     - name: Push oci image to GitHub image Registry with latest 
       run: |
         branch=${GITHUB_REF##*/}
-        crane push image.tar "$branch-latest"
+        crane push image.tar "ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}:$branch-latest"
