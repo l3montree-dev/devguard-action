@@ -24,16 +24,11 @@ on:
         type: string
         required: false
         default: ""
-      context:
-        description: 'Path to the oci context'
+      build-args:
+        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
         type: string
         required: false
-        default: "."
-      dockerfile:
-        description: 'Path to the Dockerfile'
-        type: string
-        required: false
-        default: "Dockerfile"
+        default: "--context=. --dockerfile=Dockerfile"
       artifact-suffix:
         description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
         type: string
@@ -83,7 +78,7 @@ jobs:
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} --context=${{ inputs.context }} --dockerfile=${{ inputs.dockerfile }} --no-push --tarPath /github/workspace/tmp-image.tar
+        args: --destination=${{ env.IMAGE_TAG }} $[[ inputs.build-args ]] --no-push --tarPath /github/workspace/tmp-image.tar
 
     - name: Move the image.tar to the destination path
       run: mv tmp-image.tar ${{ inputs.image-destination-path }}

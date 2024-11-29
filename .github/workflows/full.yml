@@ -29,17 +29,11 @@ on:
         type: string
         required: false
 
-      context:
-        description: 'Path to the oci context'
+      build-args:
+        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
         type: string
         required: false
-        default: "."
-
-      dockerfile:
-        description: 'Path to the Dockerfile'
-        type: string
-        required: false
-        default: "Dockerfile"
+        default: "--context=. --dockerfile=Dockerfile"
 
       should-deploy:
         description: 'Should the deploy job run - publishing the image to the desired Container Registry'
@@ -51,7 +45,7 @@ on:
         description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
         type: string
         required: false
-        default: ''  
+        default: ''
 
     secrets:
       devguard-token:
