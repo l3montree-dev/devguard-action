@@ -73,8 +73,7 @@ jobs:
     with:
       image-destination-path: ${{ inputs.image-destination-path }}
       image: ${{ inputs.image }}
-      context: ${{ inputs.context }}
-      dockerfile: ${{ inputs.dockerfile }}
+      build-args: ${{ inputs.build-args }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
     secrets:
