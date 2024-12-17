@@ -113,4 +113,4 @@ jobs:
     - name: In-Toto Provenance record stop
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --products=${{ inputs.image-destination-path }} --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
