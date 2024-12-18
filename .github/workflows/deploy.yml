@@ -56,10 +56,14 @@ jobs:
         name: image-digest${{ inputs.artifact-suffix }}
         path: .
 
+    - name: Read image-digest.txt
+      id: read-digest
+      run: echo "DIGEST=$(cat image-digest.txt)" >> $GITHUB_ENV
+    
     - name: In-Toto Provenance run
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner intoto run --step=deploy --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        args: devguard-scanner intoto run --step=deploy --materials=image.tar --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --supplyChainOutputDigest="${{ env.DIGEST }}"
 
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
