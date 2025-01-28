@@ -73,6 +73,8 @@ jobs:
           ts=$(date +%s)
           IMAGE_TAG="ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}:${branch}-${sha}-${ts}"
         fi
+
+        IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
         echo "$IMAGE_TAG" > image-tag.txt
 
         # necessary for the kaniko job
