@@ -14,9 +14,3 @@ jobs:
       uses: docker://returntocorp/semgrep
       with:
         args: semgrep scan /github/workspace --sarif -o /github/workspace/semgrep.sarif.json
-
-    - name: Upload sarif file
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: semgrep.sarif.json
-        category: sast
