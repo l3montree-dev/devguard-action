@@ -24,11 +24,6 @@ on:
         type: string
         required: false
         default: ""
-      build-args:
-        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
-        type: string
-        required: false
-        default: "--context=. --dockerfile=Dockerfile"
       artifact-suffix:
         description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
         type: string
@@ -38,14 +33,24 @@ on:
       devguard-token:
         description: 'DevGuard API token'
         required: true
+      build-args:
+        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
+        required: false
 
 jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
+    - name: Set BUILD_ARGS
+      run: |
+        if [ -z "${{ secrets.build-args }}" ]; then
+          echo "BUILD_ARGS=--context=. --dockerfile=Dockerfile" >> $GITHUB_ENV
+        else
+          echo "BUILD_ARGS=${{ secrets.build-args }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v4
-
     - name: In-Toto Provenance record start
       id: in-toto-start
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest

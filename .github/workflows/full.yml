@@ -28,13 +28,6 @@ on:
         description: 'oci image tag'
         type: string
         required: false
-
-      build-args:
-        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
-        type: string
-        required: false
-        default: "--context=. --dockerfile=Dockerfile"
-
       should-deploy:
         description: 'Should the deploy job run - publishing the image to the desired Container Registry'
         type: boolean
@@ -51,6 +44,10 @@ on:
       devguard-token:
         description: 'DevGuard API token'
         required: true
+      build-args:
+        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
+        required: false
+
 
 jobs:
   call-secret-scanning:
@@ -73,7 +70,7 @@ jobs:
     with:
       image-destination-path: ${{ inputs.image-destination-path }}
       image: ${{ inputs.image }}
-      build-args: ${{ inputs.build-args }}
+      build-args: ${{ secrets.build-args }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
     secrets:
