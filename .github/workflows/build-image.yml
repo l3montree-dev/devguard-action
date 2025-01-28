@@ -83,7 +83,7 @@ jobs:
       id: build_image
       uses: docker://gcr.io/kaniko-project/executor:v1.23.0
       with:
-        args: --destination=${{ env.IMAGE_TAG }} ${{ inputs.build-args }} --no-push --tarPath /github/workspace/tmp-image.tar
+        args: ${{ env.BUILD_ARGS }} --no-push --tarPath /github/workspace/tmp-image.tar
 
     - name: Move the image.tar to the destination path
       run: mv tmp-image.tar ${{ inputs.image-destination-path }}
