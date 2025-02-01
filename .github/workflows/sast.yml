@@ -8,9 +8,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Run Semgrep
       # Running Semgrep for static code analysis to identify security issues
-      uses: docker://returntocorp/semgrep
+      uses: docker://returntocorp/semgrep:1.106.0-nonroot@sha256:1cb8ce6fd1e798aeb9e360983680a6893d04cc76de61e77540e0d6575a4cbe1e
       with:
         args: semgrep scan /github/workspace --sarif -o /github/workspace/semgrep.sarif.json

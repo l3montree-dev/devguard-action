@@ -25,6 +25,7 @@ jobs:
     - name: Checkout code
       with:
         fetch-depth: 0
+        persist-credentials: false
       uses: actions/checkout@v4 # Check out the repository content to the runner
     - name: Set up Git
       run: |

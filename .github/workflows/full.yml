@@ -49,6 +49,10 @@ on:
         required: false
 
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   call-secret-scanning:
     uses: ./.github/workflows/secret-scanning.yml
