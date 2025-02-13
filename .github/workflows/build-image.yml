@@ -131,5 +131,11 @@ jobs:
     - name: In-Toto Provenance record stop
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.6.0@sha256:3c3e17b708b46a1b03ace3f4baebaaaf1a112db790d4b211ec29ffa5c6991eee
       with:
-        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
       continue-on-error: true
+      
+    - name: Upload SLSA Provenance
+      uses: actions/upload-artifact@v4
+      with:
+        path: build.provenance.json
+        name: build${{ inputs.artifact-suffix }}.provenance.json
