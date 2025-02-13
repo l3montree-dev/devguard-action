@@ -41,6 +41,6 @@ jobs:
       run: echo "IMAGE_TAG_AND_DIGEST=$(cat image-tag.txt)@$(cat image-digest.txt)" >> $GITHUB_ENV
 
     - name: DevGuard Image-Signing
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.6.0@sha256:3c3e17b708b46a1b03ace3f4baebaaaf1a112db790d4b211ec29ffa5c6991eee
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: devguard-scanner sign -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} --token="${{ secrets.devguard-token }}" ${{ env.IMAGE_TAG_AND_DIGEST }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }}
