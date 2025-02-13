@@ -56,7 +56,7 @@ jobs:
 
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.6.0@sha256:3c3e17b708b46a1b03ace3f4baebaaaf1a112db790d4b211ec29ffa5c6991eee
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.7.0@sha256:5e2083f165e20a8fde807fa9a4b81be1b0df861968e140a53bd27b74f05c6835
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
@@ -129,7 +129,13 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.6.0@sha256:3c3e17b708b46a1b03ace3f4baebaaaf1a112db790d4b211ec29ffa5c6991eee
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.7.0@sha256:5e2083f165e20a8fde807fa9a4b81be1b0df861968e140a53bd27b74f05c6835
       with:
-        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
       continue-on-error: true
+      
+    - name: Upload SLSA Provenance
+      uses: actions/upload-artifact@v4
+      with:
+        path: build.provenance.json
+        name: build${{ inputs.artifact-suffix }}.provenance.json
