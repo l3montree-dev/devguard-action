@@ -61,7 +61,7 @@ jobs:
       run: echo "DIGEST=$(cat image-digest.txt)" >> $GITHUB_ENV
     
     - name: In-Toto Provenance run
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.7.0@sha256:5e2083f165e20a8fde807fa9a4b81be1b0df861968e140a53bd27b74f05c6835
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: devguard-scanner intoto run --step=deploy --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --supplyChainOutputDigest="${{ env.DIGEST }}"
       continue-on-error: true
