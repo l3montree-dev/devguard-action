@@ -39,24 +39,6 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - name: Determine risk-management value
-      id: set-risk
-      run: |
-        if [[ "${RISK_MANAGEMENT}" != "null" ]]; then
-          # Respect the manually provided input
-          echo "risk-management=${RISK_MANAGEMENT}" >> $GITHUB_ENV
-        else
-          # Set risk-management based on branch or tag if not manually provided
-          if [[ "${REF}" == "refs/heads/${DEFAULT_BRANCH}" || "${REF}" == refs/tags/* ]]; then
-            echo "risk-management=true" >> $GITHUB_ENV
-          else
-            echo "risk-management=false" >> $GITHUB_ENV
-          fi
-        fi
-      env:
-        RISK_MANAGEMENT: ${{ inputs.risk-management }}
-        REF: ${{ github.ref }}
-        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
     - name: Download Docker image - if exists (gets created by build-image).If running this workflow independently, the image must be built first and provided as an artifact with the name 'oci-image'. See build-image.yml for more details.
       uses: actions/download-artifact@v4
@@ -68,4 +50,4 @@ jobs:
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --riskManagement=${{ env.risk-management }}
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --riskManagement=${{ inputs.risk-management }}
