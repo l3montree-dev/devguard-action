@@ -18,7 +18,7 @@ on:
         description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
         type: string
         required: false
-        default: 'null'
+        default: 'true'
       artifact-suffix:
         description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are scanning multiple images build from the same source with different configuration.'
         type: string
