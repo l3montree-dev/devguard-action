@@ -25,7 +25,7 @@ jobs:
     - name: Checkout code
       with:
         fetch-depth: 0
-        persist-credentials: false
+        persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
       uses: actions/checkout@v4 # Check out the repository content to the runner
     - name: Set up Git
       run: |
