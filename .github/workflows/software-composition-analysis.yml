@@ -14,6 +14,11 @@ on:
         type: string
         required: false
         default: "."
+      risk-management:
+        description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
+        type: string
+        required: false
+        default: 'true'  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -35,4 +40,5 @@ jobs:
       with:
         args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{
           inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{
-          inputs.sca-path }}
+          inputs.sca-path }} --riskManagement=${{ inputs.risk-management }}
+
