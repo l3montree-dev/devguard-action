@@ -1,0 +1,136 @@
+on:
+  workflow_call:
+    inputs:
+      image-destination-path:
+        description: 'Destination of the image.tar file'
+        type: string
+        required: false
+        default: "image.tar"
+      image:
+        description: 'OCI image name, includes the tag name'
+        type: string
+        required: false
+      asset-name:
+        description: 'Name of the asset'
+        type: string
+        required: true
+      api-url:
+        description: 'URL of the DevGuard API'
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"
+      image-suffix:
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
+        type: string
+        required: false
+        default: ""
+      artifact-suffix:
+        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
+        type: string
+        required: false
+        default: ""
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
+      build-args:
+        description: 'Build arguments. Useful to overwrite context and Dockerfile. Maybe even add additional build args.'
+        required: false
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set BUILD_ARGS
+      run: |
+        if [ -z "${{ secrets.build-args }}" ]; then
+          echo "BUILD_ARGS=--build-arg -f Dockerfile" >> $GITHUB_ENV
+        else
+          echo "BUILD_ARGS=${{ secrets.build-args }}" >> $GITHUB_ENV
+        fi
+        
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: In-Toto Provenance record start
+      id: in-toto-start
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+      continue-on-error: true
+
+    - name: Set IMAGE_TAG
+      run: |
+        if [ "${IMAGE}" != "" ]; then
+          IMAGE_TAG="${IMAGE}"
+        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"
+        else
+          branch=${GITHUB_REF##*/}
+          sha=${GITHUB_SHA::8}
+          ts=$(date +%s)
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
+        fi
+        IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
+        echo "$IMAGE_TAG" > image-tag.txt
+        echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+      env:
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        IMAGE: ${{ inputs.image }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build multi-architecture Docker image
+      run: |
+        docker buildx build ${BUILD_ARGS} \
+          --platform linux/amd64,linux/arm64 \
+          -t ${{ env.IMAGE_TAG }}
+   
+    - name: Save image to tar
+      run: |
+        docker save ${{ env.IMAGE_TAG }} -o image.tar
+          
+    - name: Move the image.tar to the destination path
+      run: mv image.tar "${IMAGE_DESTINATION_PATH}"
+      env:
+        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
+
+    - name: Setup crane
+      uses: imjasonh/setup-crane@v0.1
+
+    - name: Use crane to get the digest
+      run: crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
+      env:
+        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: oci-image${{ inputs.artifact-suffix }}
+        path: ${{ inputs.image-destination-path }}
+
+    - name: Upload digest
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-digest${{ inputs.artifact-suffix }}
+        path: image-digest.txt
+
+    - name: Upload image tag
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-tag${{ inputs.artifact-suffix }}
+        path: image-tag.txt
+
+    - name: In-Toto Provenance record stop
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
+      continue-on-error: true
+
+    - name: Upload SLSA Provenance
+      uses: actions/upload-artifact@v4
+      with:
+        path: build.provenance.json
+        name: build${{ inputs.artifact-suffix }}.provenance.json
