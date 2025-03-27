@@ -86,12 +86,8 @@ jobs:
       run: |
         docker buildx build ${BUILD_ARGS} \
           --platform linux/amd64,linux/arm64 \
-          -t ${{ env.IMAGE_TAG }} --load .
+          -t ${{ env.IMAGE_TAG }} --output type=tar,dest=image.tar .
    
-    - name: Save image to tar
-      run: |
-        docker save ${{ env.IMAGE_TAG }} -o image.tar
-          
     - name: Move the image.tar to the destination path
       run: mv image.tar "${IMAGE_DESTINATION_PATH}"
       env:
