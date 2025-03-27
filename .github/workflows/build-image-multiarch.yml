@@ -43,7 +43,7 @@ jobs:
     - name: Set BUILD_ARGS
       run: |
         if [ -z "${{ secrets.build-args }}" ]; then
-          echo "BUILD_ARGS=--build-arg -f Dockerfile" >> $GITHUB_ENV
+          echo "BUILD_ARGS=-f Dockerfile" >> $GITHUB_ENV
         else
           echo "BUILD_ARGS=${{ secrets.build-args }}" >> $GITHUB_ENV
         fi
@@ -86,7 +86,7 @@ jobs:
       run: |
         docker buildx build ${BUILD_ARGS} \
           --platform linux/amd64,linux/arm64 \
-          -t ${{ env.IMAGE_TAG }}
+          -t ${{ env.IMAGE_TAG }} --load .
    
     - name: Save image to tar
       run: |
