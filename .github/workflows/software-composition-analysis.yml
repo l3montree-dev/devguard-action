@@ -36,7 +36,7 @@ jobs:
       run: |
         git config --global --add safe.directory /github/workspace
     - name: DevGuard SCA
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.9.0
       with:
         args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{
           inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{
