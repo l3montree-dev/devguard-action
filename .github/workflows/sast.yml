@@ -10,7 +10,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         persist-credentials: false
-
     - name: Run Semgrep
       # Running Semgrep for static code analysis to identify security issues
       uses: docker://returntocorp/semgrep:1.106.0@sha256:94ba484b73c8ae0a962c43b3d6b95cfb5cf755b56b862e8a2374b8323fc4b7d7

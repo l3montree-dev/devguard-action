@@ -48,12 +48,10 @@ jobs:
         else
           echo "BUILD_ARGS=${{ secrets.build-args }}" >> $GITHUB_ENV
         fi
-
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         persist-credentials: false
-
     - name: In-Toto Provenance record start
       id: in-toto-start
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
