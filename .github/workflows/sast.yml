@@ -9,6 +9,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        submodules: recursive
         persist-credentials: false
     - name: Run Semgrep
       # Running Semgrep for static code analysis to identify security issues

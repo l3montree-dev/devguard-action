@@ -41,6 +41,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        submodules: recursive
         fetch-depth: 0
         persist-credentials: true
     - name: Download oci-image artifact (can be created by build-image)
