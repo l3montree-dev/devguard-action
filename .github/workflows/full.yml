@@ -12,7 +12,7 @@ on:
         required: false
         default: "https://api.main.devguard.org"
 
-      sca-path:
+      path:
         description: 'Path to the source code to be scanned'
         type: string
         required: false
@@ -56,16 +56,37 @@ permissions:
 jobs:
   call-secret-scanning:
     uses: ./.github/workflows/secret-scanning.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
 
   call-sast:
     uses: ./.github/workflows/sast.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  call-iac:
+    uses: ./.github/workflows/iac.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
 
   call-software-compsition-analysis:
     uses: ./.github/workflows/software-composition-analysis.yml
     with:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
-      sca-path: ${{ inputs.sca-path }}
+      path: ${{ inputs.path }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 

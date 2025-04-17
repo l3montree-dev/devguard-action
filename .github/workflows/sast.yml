@@ -1,5 +1,23 @@
 on:
   workflow_call:
+    inputs:
+      asset-name:
+        description: 'Name of the asset to be scanned'
+        type: string
+        required: true
+      api-url:
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"
+      path:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "."
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
 
 
 jobs:
@@ -11,8 +29,8 @@ jobs:
       with:
         submodules: recursive
         persist-credentials: false
-    - name: Run Semgrep
-      # Running Semgrep for static code analysis to identify security issues
-      uses: docker://returntocorp/semgrep:1.106.0@sha256:94ba484b73c8ae0a962c43b3d6b95cfb5cf755b56b862e8a2374b8323fc4b7d7
+    - name: DevGuard Static application security testing
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: semgrep scan /github/workspace --sarif -o /github/workspace/semgrep.sarif.json
+        args: devguard-scanner sast --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
+
