@@ -39,11 +39,6 @@ on:
         type: string
         required: false
         default: ''
-      risk-management:
-        description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
-        type: string
-        required: false
-        default: 'true'  
 
     secrets:
       devguard-token:
@@ -71,7 +66,6 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       sca-path: ${{ inputs.sca-path }}
-      risk-management: ${{ inputs.risk-management }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -93,7 +87,6 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-path: ${{ inputs.image-destination-path }}
-      risk-management: ${{ inputs.risk-management }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 

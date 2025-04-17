@@ -14,11 +14,6 @@ on:
         type: string
         required: false
         default: "image.tar"
-      risk-management:
-        description: 'Determines if the detected risks need to be managed. This should be done for the default branch during development and for releases (tags). That is the default already'
-        type: string
-        required: false
-        default: 'true'
       artifact-suffix:
         description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are scanning multiple images build from the same source with different configuration.'
         type: string
@@ -49,4 +44,4 @@ jobs:
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --riskManagement=${{ inputs.risk-management }}
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }}
