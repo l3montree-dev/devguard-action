@@ -118,6 +118,7 @@ jobs:
     - call-software-compsition-analysis
     - call-sast
     - call-secret-scanning
+    - call-iac
     uses: ./.github/workflows/deploy.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
@@ -134,6 +135,7 @@ jobs:
     - call-software-compsition-analysis
     - call-sast
     - call-secret-scanning
+    - call-iac
     uses: ./.github/workflows/sign.yml
     with:
       api-url: ${{ inputs.api-url }}
