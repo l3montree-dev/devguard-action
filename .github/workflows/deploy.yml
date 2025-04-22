@@ -91,6 +91,6 @@ jobs:
         branch=${GITHUB_REF##*/}
         name="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:$branch-latest"
         name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
-        crane push $(cat image-tag.txt) $name
+        crane copy $(cat image-tag.txt) $name
       env:
         IMAGE_SUFFIX: ${{ inputs.image-suffix }}
