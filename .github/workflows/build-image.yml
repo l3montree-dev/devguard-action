@@ -79,12 +79,7 @@ jobs:
           BUILD_ARGS="${{ secrets.build-args }}"
         fi
 
-        # check if we should use the artifact storage or the container registry
-        if [ "${{ inputs.disable_artifact_registry_as_image_store }}" == false ]; then
-          echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
-        else
-          echo "BUILD_ARGS=$BUILD_ARGS --destination=$(cat image-tag.txt)" >> $GITHUB_ENV
-        fi
+        echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
         
     - name: Checkout code
       uses: actions/checkout@v4
@@ -101,16 +96,6 @@ jobs:
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
 
-    - name: Authenticate kaniko
-      # Authenticating Kaniko to push the image to the registry
-      run: |
-        mkdir -p /home/runner/.docker
-        echo "{\"auths\": {\"ghcr.io\": {\"auth\": \"$(echo -n '${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}' | base64 -w0)\"}}}" > /home/runner/.docker/config.json
-      env:
-        GIT_USERNAME: ${{ github.actor }}
-        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-
-
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
@@ -122,17 +107,10 @@ jobs:
       run: mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-      # we only need this if we are using the artifact storage
-      if: ${{ inputs.disable_artifact_registry_as_image_store }} == 'false'
-
+  
     - name: Use crane to get the digest
       run: |
-        # check if we need to get the digest from a file or from the registry
-        if [ "${{ inputs.disable_artifact_registry_as_image_store }}" == true ]; then
-          crane digest $(cat image-tag.txt) > image-digest.txt
-        else
-          crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
-        fi
+        crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
 
@@ -142,7 +120,14 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: ${{ inputs.image-destination-path }}
-      if: ${{ inputs.disable_artifact_registry_as_image_store }} == 'false'
+      if: ${{ inputs.disable_artifact_registry_as_image_store }} == false
+
+    - name: Upload to container registry
+      run: |
+        crane push "${IMAGE_DESTINATION_PATH}" $(cat image-tag.txt)
+      env:
+        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
+      if: ${{ inputs.disable_artifact_registry_as_image_store }} == true
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
