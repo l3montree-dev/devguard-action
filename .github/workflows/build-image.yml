@@ -29,6 +29,11 @@ on:
         type: string
         required: false
         default: ""
+      disable_artifact_registry_as_image_store:
+        required: false
+        default: false
+        type: boolean
+        description: "If the artifact size is too big for your github usage quota, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -44,10 +49,13 @@ jobs:
     - name: Set BUILD_ARGS
       run: |
         if [ -z "${{ secrets.build-args }}" ]; then
-          echo "BUILD_ARGS=--context=. --dockerfile=Dockerfile" >> $GITHUB_ENV
+          BUILD_ARGS="--context=. --dockerfile=Dockerfile"
         else
-          echo "BUILD_ARGS=${{ secrets.build-args }}" >> $GITHUB_ENV
+          BUILD_ARGS="${{ secrets.build-args }}"
         fi
+
+        echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
+        
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -59,6 +67,35 @@ jobs:
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
+
+    - name: Setup crane
+      uses: imjasonh/setup-crane@v0.1
+
+    - name: Build Docker image with Kaniko
+      # Building the Docker image using Kaniko
+      id: build_image
+      uses: docker://gcr.io/kaniko-project/executor:v1.23.0
+      with:
+        args: ${{ env.BUILD_ARGS }}
+
+    - name: Move the image.tar to the destination path
+      run: mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
+      env:
+        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
+  
+    - name: Use crane to get the digest
+      run: |
+        crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
+      env:
+        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
+
+    # Uploading the built Docker image as an artifact
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: oci-image${{ inputs.artifact-suffix }}
+        path: ${{ inputs.image-destination-path }}
+      if: ${{ inputs.disable_artifact_registry_as_image_store }} == false
 
     # Calculate a tag name
     # If the image input is provided, use it as the tag
@@ -86,32 +123,12 @@ jobs:
         IMAGE_SUFFIX: ${{ inputs.image-suffix }}
         IMAGE: ${{ inputs.image }}
 
-    - name: Build Docker image with Kaniko
-      # Building the Docker image using Kaniko
-      id: build_image
-      uses: docker://gcr.io/kaniko-project/executor:v1.23.0
-      with:
-        args: ${{ env.BUILD_ARGS }} --no-push --tarPath /github/workspace/tmp-image.tar
-
-    - name: Move the image.tar to the destination path
-      run: mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
+    - name: Upload to container registry
+      run: |
+        crane push "${IMAGE_DESTINATION_PATH}" $(cat image-tag.txt)
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-
-    - name: Setup crane
-      uses: imjasonh/setup-crane@v0.1
-
-    - name: Use crane to get the digest
-      run: crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
-      env:
-        IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-
-    # Uploading the built Docker image as an artifact
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: oci-image${{ inputs.artifact-suffix }}
-        path: ${{ inputs.image-destination-path }}
+      if: ${{ inputs.disable_artifact_registry_as_image_store }} == true
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
