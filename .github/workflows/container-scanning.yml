@@ -21,9 +21,9 @@ on:
         default: ""
       fetch_image_from_registry:
         description: 'If set to true, the image will be pulled from the registry instead of using the artifact.'
-        type: string
+        type: boolean
         required: false
-        default: "false"
+        default: false
     secrets:
       devguard-token:
         description: 'DevGuard API token'
