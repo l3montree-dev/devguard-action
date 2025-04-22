@@ -18,7 +18,7 @@ on:
         required: false
         default: "."
       
-      disable_artifact_registry_as_image_store:
+      disable-artifact-registry-as-image-store:
         required: false
         default: false
         type: boolean
@@ -82,7 +82,7 @@ jobs:
       image: ${{ inputs.image }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
-      disable_artifact_registry_as_image_store: ${{ inputs.disable_artifact_registry_as_image_store }}
+      disable-artifact-registry-as-image-store: ${{ inputs.disable-artifact-registry-as-image-store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       build-args: ${{ secrets.build-args }}
@@ -94,7 +94,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-path: ${{ inputs.image-destination-path }}
-      fetch_image_from_registry: ${{ inputs.disable_artifact_registry_as_image_store }}
+      fetch-image-from-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -111,7 +111,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-suffix: ${{ inputs.image-suffix }}
-      image_already_in_registry: ${{ inputs.disable_artifact_registry_as_image_store }}
+      image-already-in-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 

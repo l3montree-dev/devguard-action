@@ -29,7 +29,7 @@ on:
         type: string
         required: false
         default: ""
-      disable_artifact_registry_as_image_store:
+      disable-artifact-registry-as-image-store:
         required: false
         default: false
         type: boolean
@@ -95,7 +95,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: ${{ inputs.image-destination-path }}
-      if: ${{ inputs.disable_artifact_registry_as_image_store }} == false
+      if: ${{ inputs.disable-artifact-registry-as-image-store }} == false
 
     # Calculate a tag name
     # If the image input is provided, use it as the tag
@@ -128,7 +128,7 @@ jobs:
         crane push "${IMAGE_DESTINATION_PATH}" $(cat image-tag.txt)
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-      if: ${{ inputs.disable_artifact_registry_as_image_store }} == true
+      if: ${{ inputs.disable-artifact-registry-as-image-store }} == true
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
