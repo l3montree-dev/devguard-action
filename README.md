@@ -62,7 +62,7 @@ The reusable workflow accepts the following inputs:
 | `context`               | Path to the OCI context                                                       | No          | `.`                                              | Build-image          |
 | `dockerfile`            | Path to the Dockerfile                                                        | No          | `Dockerfile`                                     |  Build-image                            |
 | `should-deploy`         | Whether the deploy job should run, publishing the image to the desired Container Registry | No          | `true`                                           |  deploy            |
-
+| `ddisable-artifact-registry-as-image-store` | Whether to disable the artifact registry as an image store between jobs. This is useful to not exceed the artifact storage quota | No          | `false`                                          | deploy            |
 
 
 ### Secrets
