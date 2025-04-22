@@ -85,7 +85,12 @@ jobs:
         else
           echo "BUILD_ARGS=$BUILD_ARGS --destination=$(cat image-tag.txt)" >> $GITHUB_ENV
         fi
-
+        
+    - name: Authenticate crane to GHCR
+      env:
+        CRANE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        crane auth login ghcr.io -u "github" -p "$CRANE_PASSWORD"
         
     - name: Checkout code
       uses: actions/checkout@v4
