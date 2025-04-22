@@ -47,6 +47,9 @@ jobs:
         path: .
       if: ${{ inputs.fetch_image_from_registry }} == false
 
+    - name: Setup crane
+      uses: imjasonh/setup-crane@v0.1
+
     - name: Download OCI Image from registry
       run: |
         crane pull $(cat image-tag.txt) image.tar
