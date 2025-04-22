@@ -14,5 +14,6 @@ jobs:
     uses: ./.github/workflows/full.yml
     with:
       asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
+      disable-artifact-registry-as-image-store: true
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}

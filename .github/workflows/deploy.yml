@@ -16,6 +16,12 @@ on:
         type: boolean
         required: false
         default: true
+      image-already-in-registry:
+        # Input to determine if the image is already in the registry
+        description: 'If set to true, the image wont be pushed again'
+        type: boolean
+        required: false
+        default: false
       artifact-suffix:
         # Prefix for the artifacts
         description: 'Prefix of the artifacts. This is only needed if you are using this job multiple times in the same workflow. For example if you are deploying multiple images with different configuration.'
@@ -49,6 +55,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .
+      if: ${{ inputs.image-already-in-registry }} == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
@@ -77,12 +84,13 @@ jobs:
 
     - name: Push oci image to GitHub image Registry
       run: crane push image.tar $(cat image-tag.txt)
+      if: ${{ inputs.image-already-in-registry }} == false
 
     - name: Push oci image to GitHub image Registry with latest
       run: |
         branch=${GITHUB_REF##*/}
         name="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:$branch-latest"
         name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
-        crane push image.tar $name
+        crane copy $(cat image-tag.txt) $name
       env:
         IMAGE_SUFFIX: ${{ inputs.image-suffix }}
