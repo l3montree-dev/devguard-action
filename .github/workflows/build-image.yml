@@ -95,7 +95,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: ${{ inputs.image-destination-path }}
-      if: ${{ inputs.disable-artifact-registry-as-image-store }} == false
+      if: inputs.disable-artifact-registry-as-image-store == false
 
     # Calculate a tag name
     # If the image input is provided, use it as the tag
