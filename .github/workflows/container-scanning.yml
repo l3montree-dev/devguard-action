@@ -19,6 +19,11 @@ on:
         type: string
         required: false
         default: ""
+      fetch_image_from_registry:
+        description: 'If set to true, the image will be pulled from the registry instead of using the artifact.'
+        type: string
+        required: false
+        default: "false"
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -40,6 +45,12 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .
+      if: ${{ inputs.fetch_image_from_registry }} == "false"
+
+    - name: Download OCI Image from registry
+      run: |
+        crane pull $(cat image-tag.txt) image.tar
+      if: ${{ inputs.fetch_image_from_registry }} == "true"
 
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest

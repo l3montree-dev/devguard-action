@@ -17,6 +17,12 @@ on:
         type: string
         required: false
         default: "."
+      
+      disable_artifact_registry_as_image_store:
+        required: false
+        default: "false"
+        type: string
+        description: "If the artifact size is too big for your gitlab instance, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
 
       image-destination-path:
         description: 'Path to the oci image to be scanned. Only necessary if deploy reusable workflow is not used and you would like to do further processing of the builded image.tar'
@@ -76,6 +82,7 @@ jobs:
       image: ${{ inputs.image }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
+      disable_artifact_registry_as_image_store: ${{ inputs.disable_artifact_registry_as_image_store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       build-args: ${{ secrets.build-args }}
@@ -87,6 +94,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-path: ${{ inputs.image-destination-path }}
+      fetch_image_from_registry: ${{ inputs.disable_artifact_registry_as_image_store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -103,6 +111,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-suffix: ${{ inputs.image-suffix }}
+      image_already_in_registry: ${{ inputs.disable_artifact_registry_as_image_store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
