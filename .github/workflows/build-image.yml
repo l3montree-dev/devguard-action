@@ -46,32 +46,6 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
-    - name: Set BUILD_ARGS
-      run: |
-        if [ -z "${{ secrets.build-args }}" ]; then
-          echo "BUILD_ARGS=--context=. --dockerfile=Dockerfile"
-        else
-          echo "BUILD_ARGS=${{ secrets.build-args }}"
-        fi
-
-        # check if we should use the artifact storage or the container registry
-        if [ "${{ inputs.disable_artifact_registry_as_image_store }}" == "false" ]; then
-          echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
-        else
-          echo "BUILD_ARGS=$BUILD_ARGS >> $GITHUB_ENV"
-        fi
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        persist-credentials: false
-    - name: In-Toto Provenance record start
-      id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
-      with:
-        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
-      continue-on-error: true
-
     # Calculate a tag name
     # If the image input is provided, use it as the tag
     # If the workflow is triggered by a tag, use the tag as the tag
@@ -97,6 +71,31 @@ jobs:
       env:
         IMAGE_SUFFIX: ${{ inputs.image-suffix }}
         IMAGE: ${{ inputs.image }}
+    - name: Set BUILD_ARGS
+      run: |
+        if [ -z "${{ secrets.build-args }}" ]; then
+          echo "BUILD_ARGS=--context=. --dockerfile=Dockerfile"
+        else
+          echo "BUILD_ARGS=${{ secrets.build-args }}"
+        fi
+
+        # check if we should use the artifact storage or the container registry
+        if [ "${{ inputs.disable_artifact_registry_as_image_store }}" == "false" ]; then
+          echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
+        else
+          echo "BUILD_ARGS=$BUILD_ARGS --destination=$(cat image-tag.txt) >> $GITHUB_ENV"
+        fi
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        persist-credentials: false
+    - name: In-Toto Provenance record start
+      id: in-toto-start
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+      continue-on-error: true
 
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
