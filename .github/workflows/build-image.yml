@@ -33,7 +33,7 @@ on:
         required: false
         default: false
         type: boolean
-        description: "If the artifact size is too big for your gitlab instance, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
+        description: "If the artifact size is too big for your github usage quota, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
     secrets:
       devguard-token:
         description: 'DevGuard API token'

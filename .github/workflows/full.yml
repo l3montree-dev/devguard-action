@@ -20,9 +20,9 @@ on:
       
       disable_artifact_registry_as_image_store:
         required: false
-        default: "false"
-        type: string
-        description: "If the artifact size is too big for your gitlab instance, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
+        default: false
+        type: boolean
+        description: "If the artifact size is too big for your github usage quota, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
 
       image-destination-path:
         description: 'Path to the oci image to be scanned. Only necessary if deploy reusable workflow is not used and you would like to do further processing of the builded image.tar'
