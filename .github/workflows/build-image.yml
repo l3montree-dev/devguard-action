@@ -83,7 +83,7 @@ jobs:
         if [ "${{ inputs.disable_artifact_registry_as_image_store }}" == false ]; then
           echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
         else
-          echo "BUILD_ARGS=$BUILD_ARGS --destination=$(cat image-tag.txt) >> $GITHUB_ENV"
+          echo "BUILD_ARGS=$BUILD_ARGS --destination=$(cat image-tag.txt)" >> $GITHUB_ENV
         fi
 
         
