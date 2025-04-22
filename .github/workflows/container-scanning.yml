@@ -45,7 +45,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .
-      if: ${{ inputs.fetch-image-from-registry }} == false
+      if: inputs.fetch-image-from-registry == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
@@ -59,7 +59,7 @@ jobs:
     - name: Download OCI Image from registry
       run: |
         crane pull $(cat image-tag.txt) image.tar
-      if: ${{ inputs.fetch-image-from-registry }} == true
+      if: inputs.fetch-image-from-registry == true
 
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest

@@ -42,7 +42,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ inputs.should-deploy }}
+    if: inputs.should-deploy
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .
-      if: ${{ inputs.image-already-in-registry }} == false
+      if: inputs.image-already-in-registry == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
@@ -84,7 +84,7 @@ jobs:
 
     - name: Push oci image to GitHub image Registry
       run: crane push image.tar $(cat image-tag.txt)
-      if: ${{ inputs.image-already-in-registry }} == false
+      if: inputs.image-already-in-registry == false
 
     - name: Push oci image to GitHub image Registry with latest
       run: |
