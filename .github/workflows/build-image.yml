@@ -98,6 +98,15 @@ jobs:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
 
+    - name: Setup crane
+      uses: imjasonh/setup-crane@v0.1
+
+    - name: Authenticate crane to GHCR
+      env:
+        CRANE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        crane auth login ghcr.io -u "github" -p "$CRANE_PASSWORD"
+
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
@@ -111,15 +120,6 @@ jobs:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
       # we only need this if we are using the artifact storage
       if: ${{ inputs.disable_artifact_registry_as_image_store }} == 'false'
-
-    - name: Setup crane
-      uses: imjasonh/setup-crane@v0.1
-
-    - name: Authenticate crane to GHCR
-      env:
-        CRANE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        crane auth login ghcr.io -u "github" -p "$CRANE_PASSWORD"
 
     - name: Use crane to get the digest
       run: |
