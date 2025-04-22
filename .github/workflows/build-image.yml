@@ -46,31 +46,6 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
-    # Calculate a tag name
-    # If the image input is provided, use it as the tag
-    # If the workflow is triggered by a tag, use the tag as the tag
-    # Otherwise built GitOps compatible tags. Fallback to the branch name, commit hash, and timestamp. Those tags are sortable and  unique.
-    - name: Set IMAGE_TAG
-      run: |
-        if [ "${IMAGE}" != "" ]; then
-          IMAGE_TAG="${IMAGE}"
-        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"
-        else
-          branch=${GITHUB_REF##*/}
-          sha=${GITHUB_SHA::8}
-          ts=$(date +%s)
-          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
-        fi
-
-        IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
-        echo "$IMAGE_TAG" > image-tag.txt
-
-        # necessary for the kaniko job
-        echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
-      env:
-        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
-        IMAGE: ${{ inputs.image }}
     - name: Set BUILD_ARGS
       run: |
         if [ -z "${{ secrets.build-args }}" ]; then
@@ -121,6 +96,32 @@ jobs:
         name: oci-image${{ inputs.artifact-suffix }}
         path: ${{ inputs.image-destination-path }}
       if: ${{ inputs.disable_artifact_registry_as_image_store }} == false
+
+    # Calculate a tag name
+    # If the image input is provided, use it as the tag
+    # If the workflow is triggered by a tag, use the tag as the tag
+    # Otherwise built GitOps compatible tags. Fallback to the branch name, commit hash, and timestamp. Those tags are sortable and  unique.
+    - name: Set IMAGE_TAG
+      run: |
+        if [ "${IMAGE}" != "" ]; then
+          IMAGE_TAG="${IMAGE}"
+        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"
+        else
+          branch=${GITHUB_REF##*/}
+          sha=${GITHUB_SHA::8}
+          ts=$(date +%s)
+          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
+        fi
+
+        IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
+        echo "$IMAGE_TAG" > image-tag.txt
+
+        # necessary for the kaniko job
+        echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+      env:
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        IMAGE: ${{ inputs.image }}
 
     - name: Upload to container registry
       run: |
