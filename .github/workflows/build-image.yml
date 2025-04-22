@@ -104,8 +104,8 @@ jobs:
     - name: Authenticate kaniko
       # Authenticating Kaniko to push the image to the registry
       run: |
-        mkdir -p /kaniko/.docker
-        echo "{\"auths\": {\"ghcr.io\": {\"auth\": \"$(echo -n '${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}' | base64 -w0)\"}}}" > /kaniko/.docker/config.json
+        mkdir -p /home/runner/.docker
+        echo "{\"auths\": {\"ghcr.io\": {\"auth\": \"$(echo -n '${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}' | base64 -w0)\"}}}" > /home/runner/.docker/config.json
       env:
         GIT_USERNAME: ${{ github.actor }}
         GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
