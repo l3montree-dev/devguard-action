@@ -101,11 +101,22 @@ jobs:
     - name: Setup crane
       uses: imjasonh/setup-crane@v0.1
 
-    - name: Authenticate crane to GHCR
-      env:
-        CRANE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    - name: Authenticate kaniko
+      # Authenticating Kaniko to push the image to the registry
       run: |
-        crane auth login ghcr.io -u "github" -p "$CRANE_PASSWORD"
+        cat <<EOF > /kaniko/.docker/config.json
+          {
+            "auths": {
+              "ghcr.io": {
+                "auth": "$(echo -n "$GIT_USERNAME:$GIT_PASSWORD" | base64 -w0)"
+              }
+            }
+          }
+          EOF
+      env:
+        GIT_USERNAME: ${{ github.actor }}
+        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
 
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
