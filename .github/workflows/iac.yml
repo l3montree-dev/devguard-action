@@ -28,6 +28,7 @@ jobs:
       with:
         submodules: recursive
         persist-credentials: false
+        fetch-depth: 0
     - name: DevGuard Infrastructure as Code
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       continue-on-error: true
