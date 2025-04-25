@@ -128,7 +128,7 @@ jobs:
         crane push "${IMAGE_DESTINATION_PATH}" $(cat image-tag.txt)
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-      if: ${{ inputs.disable-artifact-registry-as-image-store }} == true
+      if: inputs.disable-artifact-registry-as-image-store == true
 
     # Uploading the built Docker image digest as an artifact
     - name: Upload digest
