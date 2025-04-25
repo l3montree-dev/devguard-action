@@ -55,7 +55,7 @@ jobs:
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .
-      if:  inputs.image-already-in-registry == false
+      if: inputs.image-already-in-registry == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
