@@ -41,7 +41,6 @@ jobs:
         persist-credentials: true
     - name: Download Docker image - if exists (gets created by build-image).If running this workflow independently, the image must be built first and provided as an artifact with the name 'oci-image'. See build-image.yml for more details.
       uses: actions/download-artifact@v4
-      continue-on-error: true
       with:
         name: oci-image${{ inputs.artifact-suffix }}
         path: .

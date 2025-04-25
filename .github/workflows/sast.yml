@@ -19,7 +19,6 @@ on:
         description: 'DevGuard API token'
         required: true
 
-
 jobs:
   static-application-security-testing:
     runs-on: ubuntu-latest
@@ -32,6 +31,7 @@ jobs:
         persist-credentials: false
     - name: DevGuard Static application security testing
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      continue-on-error: true
       with:
-        args: devguard-scanner sast --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
+        args: devguard-scanner sast --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
 

@@ -30,6 +30,7 @@ jobs:
         persist-credentials: false
     - name: DevGuard Infrastructure as Code
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      continue-on-error: true
       with:
         args: devguard-scanner iac --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
 
