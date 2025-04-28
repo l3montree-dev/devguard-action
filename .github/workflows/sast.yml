@@ -34,4 +34,8 @@ jobs:
       continue-on-error: true
       with:
         args: devguard-scanner sast --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
-
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sast-report
+        path: /tmp/sast/result.sarif
