@@ -16,7 +16,7 @@ on:
         description: 'Path to the source code to be scanned'
         type: string
         required: false
-        default: "."
+        default: "/github/workspace"
       
       disable-artifact-registry-as-image-store:
         required: false
