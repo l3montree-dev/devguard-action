@@ -13,7 +13,7 @@ on:
         description: 'Path to the source code to be scanned'
         type: string
         required: false
-        default: "."
+        default: "/github/workspace"
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -34,4 +34,3 @@ jobs:
       continue-on-error: true
       with:
         args: devguard-scanner sast --assetName=${{ inputs.asset-name }} --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }}
-
