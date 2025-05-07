@@ -49,7 +49,7 @@ jobs:
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag
+        name: image-tag${{ inputs.artifact-suffix }}
         path: .
 
     - name: Setup crane
