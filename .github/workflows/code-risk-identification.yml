@@ -1,0 +1,35 @@
+on:
+   workflow_call:
+    inputs:
+      asset-name:
+        description: 'Name of the asset to be scanned'
+        type: string
+        required: true
+      api-url:
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"
+      sarif-file:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace"
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true  
+jobs:
+  code-risk-identification:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      with:
+        submodules: recursive
+        fetch-depth: 0
+        persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
+      uses: actions/checkout@v4 # Check out the repository content to the runner
+
+    - name: DevGuard Code Risk Identification
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+            args: devguard-scanner sarif ${{ inputs.sarif-file }} --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}"
