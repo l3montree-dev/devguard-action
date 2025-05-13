@@ -41,7 +41,8 @@ jobs:
     - name: print env
       run: |
         echo "SARIF Artifact Name: ${{ inputs.sarif-artifact-name }}"
-        echo "SARIF File: ${{ inputs.sarif-file }}"    
+        echo "SARIF File: ${{ inputs.sarif-file }}"   
+        echo "ls -la" 
         cat ${{ inputs.sarif-file }}
 
     - name: DevGuard Code Risk Identification
