@@ -42,6 +42,7 @@ jobs:
       run: |
         echo "SARIF Artifact Name: ${{ inputs.sarif-artifact-name }}"
         echo "SARIF File: ${{ inputs.sarif-file }}"    
+        cat ${{ inputs.sarif-file }}
 
     - name: DevGuard Code Risk Identification
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
