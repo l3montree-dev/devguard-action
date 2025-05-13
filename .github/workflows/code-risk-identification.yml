@@ -9,11 +9,16 @@ on:
         type: string
         required: false
         default: "https://api.main.devguard.org"
-      sarif-file:
-        description: 'Path to the source code to be scanned'
+      sarif-artifact-name:
+        description: 'Name of the SARIF artifact to be downloaded'
         type: string
         required: false
-        default: "/github/workspace"
+        default: "sarif"
+      sarif-file:
+        description: 'Path to the SARIF file to be scanned'
+        type: string
+        required: true
+        default: "sarif.json"  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -22,6 +27,11 @@ jobs:
   code-risk-identification:
     runs-on: ubuntu-latest
     steps:
+    - name: Download SARIF artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.sarif-artifact-name }}
+      if: ${{ inputs.sarif-artifact-name != '' }}  
     - name: Checkout code
       with:
         submodules: recursive

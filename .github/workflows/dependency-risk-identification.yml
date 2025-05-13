@@ -9,11 +9,16 @@ on:
         type: string
         required: false
         default: "https://api.main.devguard.org"
-      sbom-file:
-        description: 'Path to the source code to be scanned'
+      sbom-artifact-name:
+        description: 'Name of the SBOM artifact to be downloaded'
         type: string
         required: false
-        default: "/github/workspace"
+        default: "sbom"
+      sbom-file:
+        description: 'Path to the SBOM file to be scanned'
+        type: string
+        required: true
+        default: "sbom.json"
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -23,12 +28,18 @@ jobs:
   dependency-risk-identification:
     runs-on: ubuntu-latest
     steps:
+    - name: Download SBOM artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.sbom-artifact-name }}
+      if: ${{ inputs.sbom-artifact-name != '' }}
     - name: Checkout code
       with:
         submodules: recursive
         fetch-depth: 0
         persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
       uses: actions/checkout@v4 # Check out the repository content to the runner
+      if: ${{ inputs.sbom-artifact-name == '' }}
     - name: DevGuard Dependency Risk Identification
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
