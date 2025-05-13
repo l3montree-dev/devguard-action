@@ -13,7 +13,7 @@ on:
         description: 'Name of the SBOM artifact to be downloaded'
         type: string
         required: false
-        default: "sbom"
+        default: ""
       sbom-file:
         description: 'Path to the SBOM file to be scanned'
         type: string

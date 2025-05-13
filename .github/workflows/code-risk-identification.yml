@@ -13,7 +13,7 @@ on:
         description: 'Name of the SARIF artifact to be downloaded'
         type: string
         required: false
-        default: "sarif"
+        default: ""
       sarif-file:
         description: 'Path to the SARIF file to be scanned'
         type: string
@@ -38,6 +38,10 @@ jobs:
         fetch-depth: 0
         persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
       uses: actions/checkout@v4 # Check out the repository content to the runner
+    - name: print env
+      run: |
+        echo "SARIF Artifact Name: ${{ inputs.sarif-artifact-name }}"
+        echo "SARIF File: ${{ inputs.sarif-file }}"    
 
     - name: DevGuard Code Risk Identification
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
