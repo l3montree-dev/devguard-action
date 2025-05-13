@@ -27,17 +27,17 @@ jobs:
   code-risk-identification:
     runs-on: ubuntu-latest
     steps:
-    - name: Download SARIF artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.sarif-artifact-name }}
-      if: ${{ inputs.sarif-artifact-name != '' }}  
     - name: Checkout code
       with:
         submodules: recursive
         fetch-depth: 0
         persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
       uses: actions/checkout@v4 # Check out the repository content to the runner
+    - name: Download SARIF artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.sarif-artifact-name }}
+      if: ${{ inputs.sarif-artifact-name != '' }}  
     - name: print env
       run: |
         echo "SARIF Artifact Name: ${{ inputs.sarif-artifact-name }}"
