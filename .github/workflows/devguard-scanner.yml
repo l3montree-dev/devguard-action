@@ -17,3 +17,15 @@ jobs:
       disable-artifact-registry-as-image-store: true
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
+
+      - name: print the branch name
+        run: echo  git rev-parse --abbrev-ref HEAD  
