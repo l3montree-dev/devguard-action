@@ -21,7 +21,7 @@ jobs:
           persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
 
       - name: print the branch name
-        run: echo  git rev-parse --abbrev-ref HEAD  
+        run: echo  $(git rev-parse --abbrev-ref HEAD)
   devguard-scanner:
     uses: ./.github/workflows/full.yml
     with:
