@@ -63,4 +63,4 @@ jobs:
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }}
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --defaultRef=${{ github.event.repository.default_branch }}
