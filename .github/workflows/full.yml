@@ -151,3 +151,19 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
+
+  call-attest:
+    needs:
+    - call-build-image
+    - call-container-scanning
+    - call-software-compsition-analysis
+    - call-sast
+    - call-secret-scanning
+    - call-iac
+    uses: ./.github/workflows/attest.yml
+    with:
+      api-url: ${{ inputs.api-url }}
+      asset-name: ${{ inputs.asset-name }}
+      artifact-suffix: ${{ inputs.image-suffix }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}

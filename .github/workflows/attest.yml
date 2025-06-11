@@ -1,0 +1,76 @@
+on:
+  workflow_call:
+    inputs:
+      asset-name:
+        description: 'Name of the asset to be scanned'
+        type: string
+        required: true
+      api-url:
+        type: string
+        required: false
+        default: "https://api.main.devguard.org"
+      path:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace"
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
+
+jobs:
+  infrastructure-as-code:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download image-digest artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
+      with:
+        name: image-digest${{ inputs.artifact-suffix }}
+        path: .
+      continue-on-error: true
+    - name: Get SBOM
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sbom.json --token="${{ secrets.devguard-token }}" > sbom.json
+    - name: Get VeX
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/vex.json --token="${{ secrets.devguard-token }}" > vex.json
+    - name: Get SAST-Results
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sarif.json --token="${{ secrets.devguard-token }}" > sarif.json
+    - name: Attest SBOM
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: >
+          sh -c '
+            if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
+              devguard-scanner attest sbom.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            else
+              devguard-scanner attest sbom.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            fi
+          '
+    - name: Attest VeX
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: >
+          sh -c '
+            if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
+              devguard-scanner attest vex.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            else
+              devguard-scanner attest vex.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            fi
+          '
+    - name: Attest SAST-Results
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: >
+          sh -c '
+            if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
+              devguard-scanner attest sarif.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            else
+              devguard-scanner attest sarif.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            fi
+          '
