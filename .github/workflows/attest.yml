@@ -37,24 +37,24 @@ jobs:
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sbom.json --token="${{ secrets.devguard-token }}" > sbom.json'
+        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sbom.json --token=\"${{ secrets.devguard-token }}\" > sbom.json'
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/vex.json --token="${{ secrets.devguard-token }}" > vex.json'
+        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/vex.json --token=\"${{ secrets.devguard-token }}\" > vex.json'
     - name: Get SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sarif.json --token="${{ secrets.devguard-token }}" > sarif.json'
+        args: sh -c 'devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sarif.json --token=\"${{ secrets.devguard-token }}\" > sarif.json'
     - name: Attest SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: >
           sh -c '
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest sbom.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sbom.json \"$(cat image-digest${{ inputs.artifact-suffix }})\" --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest sbom.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sbom.json --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           '
     - name: Attest VeX
@@ -63,9 +63,9 @@ jobs:
         args: >
           sh -c '
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest vex.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest vex.json \"$(cat image-digest${{ inputs.artifact-suffix }})\" --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest vex.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest vex.json --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           '
     - name: Attest SAST-Results
@@ -74,8 +74,8 @@ jobs:
         args: >
           sh -c '
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest sarif.json "$(cat image-digest${{ inputs.artifact-suffix }})" --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json \"$(cat image-digest${{ inputs.artifact-suffix }})\" --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest sarif.json --token="${{ secrets.devguard-token }}" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json --token=\"${{ secrets.devguard-token }}\" --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           '
