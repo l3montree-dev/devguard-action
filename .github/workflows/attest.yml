@@ -52,9 +52,9 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest sbom.json '$(cat image-digest${{ inputs.artifact-suffix }})' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' '$(cat image-digest.txt)' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest sbom.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           "
     - name: Attest VeX
@@ -63,9 +63,9 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest vex.json '$(cat image-digest${{ inputs.artifact-suffix }})' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest vex.json '$(cat image-digest.txt)' --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest vex.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           "
     - name: Attest SAST-Results
@@ -74,8 +74,25 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest sarif.json '$(cat image-digest${{ inputs.artifact-suffix }})' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json '$(cat image-digest.txt)' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
               devguard-scanner attest sarif.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            fi
+          "
+    # download build-provenance.json if it exists
+    - name: Download build-provenance.json
+      uses: actions/download-artifact@v4
+      with:
+        name: build${{ inputs.artifact-suffix }}.provenance.json
+    - name: Attest build-provenance.json
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      continue-on-error: true
+      with:
+        args: >
+          sh -c "
+            if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
+              devguard-scanner attest build.provenance.json '$(cat image-digest.txt)' --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+            else
+              devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           "
