@@ -74,9 +74,9 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest${{ inputs.artifact-suffix }} ]; then
-              devguard-scanner attest sarif.json '$(cat image-digest.txt)' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json '$(cat image-digest.txt)' --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
-              devguard-scanner attest sarif.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
           "
     # download build-provenance.json if it exists
