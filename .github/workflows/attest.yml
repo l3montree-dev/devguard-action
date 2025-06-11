@@ -14,6 +14,11 @@ on:
         type: string
         required: false
         default: "/github/workspace"
+      artifact-suffix:
+        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are scanning multiple images build from the same source with different configuration.'
+        type: string
+        required: false
+        default: ""
     secrets:
       devguard-token:
         description: 'DevGuard API token'
