@@ -25,7 +25,7 @@ on:
         required: true
 
 jobs:
-  infrastructure-as-code:
+  attest:
     runs-on: ubuntu-latest
     steps:
     - name: Download image-digest artifact (can be created by build-image)
