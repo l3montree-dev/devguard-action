@@ -55,6 +55,10 @@ jobs:
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
         args: sh -c "devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sarif.json --token='${{ secrets.devguard-token }}' > sarif.json"
+    - name: Authenticate against the Github container registry
+      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
+      with:
+        args: sh -c "devguard-scanner login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io"
     - name: Attest SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
