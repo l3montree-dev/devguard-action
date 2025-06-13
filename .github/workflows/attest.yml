@@ -57,7 +57,7 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' '$(cat image-digest.txt)@$(cat image-tag.txt)' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-digest.txt)@$(cat image-tag.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
               devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
@@ -68,7 +68,7 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest vex.json '$(cat image-digest.txt)@$(cat image-tag.txt)' --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest vex.json \"$(cat image-digest.txt)@$(cat image-tag.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
               devguard-scanner attest vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
@@ -79,7 +79,7 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest sarif.json '$(cat image-digest.txt)@$(cat image-tag.txt)' --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest sarif.json \"$(cat image-digest.txt)@$(cat image-tag.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
               devguard-scanner attest sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
@@ -96,7 +96,7 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest build.provenance.json '$(cat image-digest.txt)@$(cat image-tag.txt)' --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
+              devguard-scanner attest build.provenance.json \"$(cat image-digest.txt)@$(cat image-tag.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             else
               devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}
             fi
