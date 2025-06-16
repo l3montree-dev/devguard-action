@@ -31,7 +31,7 @@ jobs:
     - name: slugify all the variables for the building of the url
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner slug ${{ github.ref_name }} > ref-slug"
+        args: sh -c "devguard-scanner slug '${{ github.ref_name }}' > ref-slug"
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
