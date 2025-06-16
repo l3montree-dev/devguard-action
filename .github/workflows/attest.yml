@@ -31,7 +31,7 @@ jobs:
     - name: slugify all the variables for the building of the url
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner slug '${{ github.ref_name }}' > ref-slug"
+        args: sh -c "devguard-scanner slug '${{ github.ref_name }}' > ref-slug.txt"
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
@@ -46,7 +46,11 @@ jobs:
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ ref-slug }}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json"
+        args: >
+            sh -c " 
+            asset_slug=$(cat ref-slug.txt) devguard-scanner 
+            get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ ref-slug }}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json
+            "
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
