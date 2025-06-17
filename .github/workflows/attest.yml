@@ -44,8 +44,8 @@ jobs:
       with:
         args: >
             sh -c " 
-            devguard-scanner slug '${{ github.ref_name }}' | read slug |
-            devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ slug }}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json
+            devguard-scanner slug '${{ github.ref_name }}' | 
+            xargs -I{} devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/{}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json
             "
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
