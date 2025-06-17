@@ -24,6 +24,7 @@ on:
         description: 'DevGuard API token'
         required: true
 
+
 jobs:
   attest:
     runs-on: ubuntu-latest
@@ -42,15 +43,24 @@ jobs:
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json"
+        args: >
+          sh -c "
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sbom.json' --token='${{ secrets.devguard-token }}' > sbom.json
+          "
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/vex.json --token='${{ secrets.devguard-token }}' > vex.json"
+        args: >
+            sh -c " 
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/vex.json' --token='${{ secrets.devguard-token }}' > vex.json
+            "
     - name: Get SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: sh -c "devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ github.ref_name }}/sarif.json --token='${{ secrets.devguard-token }}' > sarif.json"
+         args: >
+            sh -c " 
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}' > sarif.json
+            "
     - name: Attest SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
