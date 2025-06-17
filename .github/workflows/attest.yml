@@ -28,10 +28,6 @@ jobs:
   attest:
     runs-on: ubuntu-latest
     steps:
-    - name: slugify all the variables for the building of the url
-      uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
-      with:
-        args: sh -c "devguard-scanner slug '${{ github.ref_name }}' > slug.txt"
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
@@ -48,7 +44,7 @@ jobs:
       with:
         args: >
             sh -c " 
-            slug=$(cat slug.txt) 
+            devguard-scanner slug '${{ github.ref_name }}' | read slug |
             devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/${{ slug }}/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json
             "
     - name: Get VeX
