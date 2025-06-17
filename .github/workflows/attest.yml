@@ -43,8 +43,7 @@ jobs:
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: >
-          sh -c "slug=\`devguard-scanner slug '${{ github.ref_name }}'\`; echo slug is $slug; devguard-scanner get ${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/$slug/sbom.json --token='${{ secrets.devguard-token }}' > sbom.json"
+        args: sh -c "slug=\`devguard-scanner slug '${{ github.ref_name }}'\`; echo slug is \$slug; devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/\$slug/sbom.json' --token='${{ secrets.devguard-token }}' > sbom.json"
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
