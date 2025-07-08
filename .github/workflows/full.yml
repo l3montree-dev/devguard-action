@@ -46,15 +46,15 @@ on:
         required: false
         default: ''
       fail-on-risk:
-        description: 'Fail the job if a risk is higher than the configured threshold'
-        type: number
+        description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
         required: false
-        default: 10.0
+
       fail-on-cvss:
-        description: 'Fail the job if a CVSS score is higher than the configured threshold'
-        type: number
+        description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
         required: false
-        default: 10.0  
+
 
     secrets:
       devguard-token:
