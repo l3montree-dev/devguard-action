@@ -14,6 +14,16 @@ on:
         type: string
         required: false
         default: "/github/workspace"
+      fail-on-risk:
+        description: 'Fail the job if a risk is higher than the configured threshold'
+        type: number
+        required: false
+        default: 10.0
+      fail-on-cvss:
+        description: 'Fail the job if a CVSS score is higher than the configured threshold'
+        type: number
+        required: false
+        default: 10.0  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -33,4 +43,4 @@ jobs:
       with:
         args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{
           inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{
-          inputs.path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }}
+          inputs.path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --failOnRisk=${{ inputs.fail-on-risk }} --failOnCVSS=${{ inputs.fail-on-cvss }}

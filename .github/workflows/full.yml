@@ -45,6 +45,16 @@ on:
         type: string
         required: false
         default: ''
+      fail-on-risk:
+        description: 'Fail the job if a risk is higher than the configured threshold'
+        type: number
+        required: false
+        default: 10.0
+      fail-on-cvss:
+        description: 'Fail the job if a CVSS score is higher than the configured threshold'
+        type: number
+        required: false
+        default: 10.0  
 
     secrets:
       devguard-token:
@@ -93,6 +103,8 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -116,6 +128,8 @@ jobs:
       api-url: ${{ inputs.api-url }}
       image-path: ${{ inputs.image-destination-path }}
       fetch-image-from-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
