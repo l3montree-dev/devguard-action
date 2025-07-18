@@ -27,12 +27,7 @@ on:
         required: false
         default: ''
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."  
-      image-suffix:
-        # Suffix for the image name
-        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
-        type: string
-        required: false
-        default: ''
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -88,8 +83,8 @@ jobs:
     - name: Push oci image to GitHub image Registry with latest
       run: |
         branch=${GITHUB_REF##*/}
-        name="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:$branch-latest"
+        name="ghcr.io/${{ github.repository }}${ARTIFACT_NAME}:$branch-latest"
         name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
         crane copy $(cat image-tag.txt) $name
       env:
-        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}  
