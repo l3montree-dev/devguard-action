@@ -19,11 +19,7 @@ on:
         type: string
         required: false
         default: "https://api.main.devguard.org"
-      image-suffix:
-        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
-        type: string
-        required: false
-        default: ""
+
       artifact-name:
         type: string
         required: false
@@ -106,12 +102,21 @@ jobs:
         if [ "${IMAGE}" != "" ]; then
           IMAGE_TAG="${IMAGE}"
         elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"
+          if [ "${ARTIFACT_NAME}" != "" ]; then
+            IMAGE_TAG="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:${GITHUB_REF#refs/tags/}"  
+          else
+            IMAGE_TAG="ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}"  
+          fi
+
         else
           branch=${GITHUB_REF##*/}
           sha=${GITHUB_SHA::8}
           ts=$(date +%s)
-          IMAGE_TAG="ghcr.io/${{ github.repository }}${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
+            if [ "${ARTIFACT_NAME}" != "" ]; then
+              IMAGE_TAG="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:${branch}-${sha}-${ts}"
+            else
+              IMAGE_TAG="ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}"
+            fi
         fi
 
         IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
@@ -120,7 +125,7 @@ jobs:
         # necessary for the kaniko job
         echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
       env:
-        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}  
         IMAGE: ${{ inputs.image }}
 
     - name: Upload to container registry
