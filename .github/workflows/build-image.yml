@@ -24,11 +24,11 @@ on:
         type: string
         required: false
         default: ""
-      artifact-suffix:
-        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are building multiple images from the same source with different configuration.'
+      artifact-name:
         type: string
         required: false
-        default: ""
+        default: ''
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty." 
       disable-artifact-registry-as-image-store:
         required: false
         default: false
@@ -93,7 +93,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: oci-image${{ inputs.artifact-suffix }}
+        name: oci-image${{ inputs.artifact-name }}
         path: ${{ inputs.image-destination-path }}
       if: inputs.disable-artifact-registry-as-image-store == false
 
@@ -134,14 +134,14 @@ jobs:
     - name: Upload digest
       uses: actions/upload-artifact@v4
       with:
-        name: image-digest${{ inputs.artifact-suffix }}
+        name: image-digest${{ inputs.artifact-name }}
         path: image-digest.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
       uses: actions/upload-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-suffix }}
+        name: image-tag${{ inputs.artifact-name }}
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
@@ -154,4 +154,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: build.provenance.json
-        name: build${{ inputs.artifact-suffix }}.provenance.json
+        name: build${{ inputs.artifact-name }}.provenance.json

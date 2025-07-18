@@ -1,0 +1,16 @@
+#that is just a simple Dockerfile to build the app for testing purposes
+
+FROM golang:1.25rc2-alpine3.22
+
+# checkov:skip=CKV_DOCKER_2
+# checkov:skip=CKV_DOCKER_3
+
+WORKDIR /go/src/app
+
+COPY . .
+
+RUN go mod download
+
+RUN CGO_ENABLED=0 go build -o /app ./main.go
+
+CMD ["/app"]

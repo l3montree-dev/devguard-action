@@ -1,0 +1,83 @@
+{
+    "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:7af88648-5651-48f5-8817-5392b05e149c",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2025-06-13T13:54:20+00:00",
+        "tools": {
+            "components": [
+                {
+                    "type": "application",
+                    "group": "aquasecurity",
+                    "name": "trivy",
+                    "version": "0.63.0"
+                }
+            ]
+        },
+        "component": {
+            "bom-ref": "e99fccb1-01a1-4f13-9820-d123388528fc",
+            "type": "application",
+            "name": ".",
+            "properties": [
+                {
+                    "name": "aquasecurity:trivy:SchemaVersion",
+                    "value": "2"
+                }
+            ]
+        }
+    },
+    "components": [
+        {
+            "bom-ref": "7aaa7d64-ebeb-42e7-b844-28475045a7d7",
+            "type": "application",
+            "name": "go.mod",
+            "properties": [
+                {
+                    "name": "aquasecurity:trivy:Class",
+                    "value": "lang-pkgs"
+                },
+                {
+                    "name": "aquasecurity:trivy:Type",
+                    "value": "gomod"
+                }
+            ]
+        },
+        {
+            "bom-ref": "pkg:golang/tmp",
+            "type": "library",
+            "name": "tmp",
+            "purl": "pkg:golang/tmp",
+            "properties": [
+                {
+                    "name": "aquasecurity:trivy:PkgID",
+                    "value": "tmp"
+                },
+                {
+                    "name": "aquasecurity:trivy:PkgType",
+                    "value": "gomod"
+                }
+            ]
+        }
+    ],
+    "dependencies": [
+        {
+            "ref": "7aaa7d64-ebeb-42e7-b844-28475045a7d7",
+            "dependsOn": [
+                "pkg:golang/tmp"
+            ]
+        },
+        {
+            "ref": "e99fccb1-01a1-4f13-9820-d123388528fc",
+            "dependsOn": [
+                "7aaa7d64-ebeb-42e7-b844-28475045a7d7"
+            ]
+        },
+        {
+            "ref": "pkg:golang/tmp",
+            "dependsOn": []
+        }
+    ],
+    "vulnerabilities": []
+}
