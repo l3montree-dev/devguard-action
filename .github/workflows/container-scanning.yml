@@ -14,11 +14,6 @@ on:
         type: string
         required: false
         default: "image.tar"
-      artifact-suffix:
-        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are scanning multiple images build from the same source with different configuration.'
-        type: string
-        required: false
-        default: ""
       fetch-image-from-registry:
         description: 'If set to true, the image will be pulled from the registry instead of using the artifact.'
         type: boolean
@@ -32,6 +27,11 @@ on:
         description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low'
         type: string
         required: false  
+      artifact-name:
+        type: string
+        required: false
+        default: ""
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -50,14 +50,14 @@ jobs:
     - name: Download Docker image - if exists (gets created by build-image).If running this workflow independently, the image must be built first and provided as an artifact with the name 'oci-image'. See build-image.yml for more details.
       uses: actions/download-artifact@v4
       with:
-        name: oci-image${{ inputs.artifact-suffix }}
+        name: oci-image${{ inputs.artifact-name }}
         path: .
       if: inputs.fetch-image-from-registry == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-suffix }}
+        name: image-tag${{ inputs.artifact-name }}
         path: .
 
     - name: Setup crane
@@ -71,4 +71,4 @@ jobs:
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       with:
-        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --failOnRisk=${{ inputs.fail-on-risk }} --failOnCVSS=${{ inputs.fail-on-cvss }}
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --failOnRisk=${{ inputs.fail-on-risk }} --failOnCVSS=${{ inputs.fail-on-cvss }} --artifactName=${{ inputs.artifact-name }}

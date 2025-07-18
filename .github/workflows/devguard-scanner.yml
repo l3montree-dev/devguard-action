@@ -17,3 +17,48 @@ jobs:
       disable-artifact-registry-as-image-store: true
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
+
+
+  build-test-image:
+    uses: ./.github/workflows/build-image.yml
+    with:
+      artifact-name: "test"
+      asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
+      api-url: https://api.main.devguard.org
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}  
+      build-args: "--context=. --dockerfile=Dockerfile-test"
+
+
+  container-scanning-test:
+    uses: ./.github/workflows/container-scanning.yml
+    needs: 
+    - build-test-image
+    with:
+      asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
+      api-url: https://api.main.devguard.org
+      artifact-name: "test"
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
+    
+  deploy-test:
+    uses: ./.github/workflows/deploy.yml
+    needs: 
+    - container-scanning-test
+    with:
+      asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
+      api-url: https://api.main.devguard.org
+      artifact-name: "test"
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
+
+  sbom-test:
+    uses: ./.github/workflows/dependency-risk-identification.yml
+    with:
+      asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
+      api-url: https://api.main.devguard.org
+      artifact-name: "test"
+      sbom-file: "sbom-in-repo.json"
+
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    

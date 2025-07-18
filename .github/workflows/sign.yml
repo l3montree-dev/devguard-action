@@ -9,11 +9,11 @@ on:
         description: 'Name of the asset'
         type: string
         required: true
-      artifact-suffix:
-        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are signing multiple images with different configuration.'
+      artifact-name:
         type: string
         required: false
-        default: ""
+        default: ''
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."  
 
     secrets:
       devguard-token:
@@ -33,13 +33,13 @@ jobs:
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-suffix }}
+        name: image-tag${{ inputs.artifact-name }}
         path: .
 
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-digest${{ inputs.artifact-suffix }}
+        name: image-digest${{ inputs.artifact-name }}
         path: .
 
     - name: Set Image to be signed

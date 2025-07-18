@@ -146,7 +146,6 @@ jobs:
       should-deploy: ${{ inputs.should-deploy }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
-      image-suffix: ${{ inputs.image-suffix }}
       image-already-in-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
@@ -178,6 +177,5 @@ jobs:
     with:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
-      artifact-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
