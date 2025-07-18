@@ -24,6 +24,14 @@ on:
         type: boolean
         required: false
         default: false
+      fail-on-risk:
+        description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
+        required: false
+      fail-on-cvss:
+        description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
+        required: false  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -63,4 +71,4 @@ jobs:
     - name: DevGuard Container-Scanning
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:0.12.3
       with:
-        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }}
+        args: devguard-scanner container-scanning --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.image-path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --failOnRisk=${{ inputs.fail-on-risk }} --failOnCVSS=${{ inputs.fail-on-cvss }}
