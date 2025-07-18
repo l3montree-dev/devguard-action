@@ -14,11 +14,11 @@ on:
         type: string
         required: false
         default: "/github/workspace"
-      artifact-suffix:
-        description: 'This is only needed if you are using this job multiple times in the same workflow. For example if you are scanning multiple images build from the same source with different configuration.'
+      artifact-name:
         type: string
         required: false
-        default: ""
+        default: ''
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."  
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -32,13 +32,13 @@ jobs:
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-digest${{ inputs.artifact-suffix }}
+        name: image-digest${{ inputs.artifact-name}}
         path: .
       continue-on-error: true
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-suffix }}
+        name: image-tag${{ inputs.artifact-name }}
         path: .
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
@@ -98,7 +98,7 @@ jobs:
     - name: Download build-provenance.json
       uses: actions/download-artifact@v4
       with:
-        name: build${{ inputs.artifact-suffix }}.provenance.json
+        name: build${{ inputs.artifact-name }}.provenance.json
     - name: Attest build-provenance.json
       uses: docker://ghcr.io/l3montree-dev/devguard-scanner:main-latest
       continue-on-error: true
