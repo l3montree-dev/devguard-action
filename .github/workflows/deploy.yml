@@ -83,7 +83,7 @@ jobs:
     - name: Push oci image to GitHub image Registry with latest
       run: |
         branch=${GITHUB_REF##*/}
-        name="ghcr.io/${{ github.repository }}${ARTIFACT_NAME}:$branch-latest"
+        name="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:$branch-latest"
         name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
         crane copy $(cat image-tag.txt) $name
       env:
