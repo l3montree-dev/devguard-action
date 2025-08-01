@@ -82,6 +82,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
+      web-ui: ${{ inputs.web-ui }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
