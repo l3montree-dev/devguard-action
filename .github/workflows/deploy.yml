@@ -83,11 +83,11 @@ jobs:
     - name: Push oci image to GitHub image Registry with latest
       run: |
         branch=${GITHUB_REF##*/}
-
+        
         if [ "${ARTIFACT_NAME}" != "" ]; then
-          name=="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:$branch-latest"
+          name="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:$branch-latest"
         else
-          IMAGE_TAG=="ghcr.io/${{ github.repository }}:$branch-latest"
+          name="ghcr.io/${{ github.repository }}:$branch-latest"
         fi
         
         name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
