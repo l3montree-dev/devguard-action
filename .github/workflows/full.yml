@@ -18,7 +18,7 @@ on:
         required: false
         default: "/github/workspace"
       
-      web_ui:
+      web-ui:
         type: string
         required: false
         default: "https://app.devguard.org"
@@ -91,7 +91,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
-      web_ui: ${{ inputs.web_ui }}
+      web-ui: ${{ inputs.web-ui }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -101,7 +101,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
-      web_ui: ${{ inputs.web_ui }}
+      web-ui: ${{ inputs.web-ui }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -113,7 +113,7 @@ jobs:
       path: ${{ inputs.path }}
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
-      web_ui: ${{ inputs.web_ui }}
+      web-ui: ${{ inputs.web-ui }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -139,7 +139,7 @@ jobs:
       fetch-image-from-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
-      web_ui: ${{ inputs.web_ui }}
+      web-ui: ${{ inputs.web-ui }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
