@@ -19,10 +19,6 @@ on:
         required: false
         default: ''
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
-      continue-on-error:
-        type: boolean
-        required: false
-        default: true
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -38,7 +34,7 @@ jobs:
       with:
         name: image-digest${{ inputs.artifact-name}}
         path: .
-      continue-on-error: ${{ inputs.continue-on-error }}
+      continue-on-error: true
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
@@ -105,7 +101,7 @@ jobs:
         name: build${{ inputs.artifact-name }}.provenance.json
     - name: Attest build-provenance.json
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
-      continue-on-error: ${{ inputs.continue-on-error }}
+      continue-on-error: true
       with:
         args: >
           sh -c "

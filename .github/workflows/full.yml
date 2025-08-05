@@ -61,7 +61,7 @@ on:
         type: string
         required: false
 
-      continue-on-error:
+      continue-on-open-code-risk:
         type: boolean
         required: false
         default: true
@@ -87,7 +87,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
-      continue-on-error: ${{ inputs.continue-on-error }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -98,7 +98,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
-      continue-on-error: ${{ inputs.continue-on-error }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -109,7 +109,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
-      continue-on-error: ${{ inputs.continue-on-error }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
