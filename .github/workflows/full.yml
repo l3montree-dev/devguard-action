@@ -61,6 +61,10 @@ on:
         type: string
         required: false
 
+      continue-on-error:
+        type: boolean
+        required: false
+        default: true
 
     secrets:
       devguard-token:
@@ -83,6 +87,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
+      continue-on-error: ${{ inputs.continue-on-error }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -93,6 +98,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
+      continue-on-error: ${{ inputs.continue-on-error }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -103,6 +109,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       path: ${{ inputs.path }}
       web-ui: ${{ inputs.web-ui }}
+      continue-on-error: ${{ inputs.continue-on-error }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 

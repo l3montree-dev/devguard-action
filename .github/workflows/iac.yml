@@ -19,6 +19,10 @@ on:
         required: false
         default: "https://app.devguard.org"
         description: "The URL of the DevGuard Web UI. This is used to link the results in the DevGuard Web UI."
+      continue-on-error:
+        type: boolean
+        required: false
+        default: true
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -36,6 +40,6 @@ jobs:
         fetch-depth: 0
     - name: DevGuard Infrastructure as Code
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
-      continue-on-error: true
+      continue-on-error: ${{ inputs.continue-on-error }}
       with:
         args: devguard-scanner iac --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --webUI=${{ inputs.web-ui }}
