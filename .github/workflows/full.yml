@@ -10,7 +10,7 @@ on:
       api-url:
         type: string
         required: false
-        default: "https://api.main.devguard.org"
+        default: "https://api.devguard.org"
 
       path:
         description: 'Path to the source code to be scanned'

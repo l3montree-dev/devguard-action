@@ -18,7 +18,7 @@ on:
         description: 'URL of the DevGuard API'
         type: string
         required: false
-        default: "https://api.main.devguard.org"
+        default: "https://api.devguard.org"
 
       artifact-name:
         type: string

@@ -8,7 +8,7 @@ on:
       api-url:
         type: string
         required: false
-        default: "https://api.main.devguard.org"
+        default: "https://api.devguard.org"
       sarif-artifact-name:
         description: 'Name of the SARIF artifact to be downloaded'
         type: string
