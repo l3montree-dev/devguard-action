@@ -59,7 +59,7 @@ jobs:
         persist-credentials: false
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:0.13.18
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
@@ -150,7 +150,7 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:0.13.18
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
       continue-on-error: true
