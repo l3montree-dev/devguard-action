@@ -15,6 +15,7 @@ jobs:
     with:
       asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
       disable-artifact-registry-as-image-store: true
+      api-url: https://api.main.devguard.org
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
 
@@ -24,7 +25,7 @@ jobs:
     with:
       artifact-name: "test"
       asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
-      api-url: https://api.devguard.org
+      api-url: https://api.main.devguard.org
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}  
       build-args: "--context=. --dockerfile=Dockerfile-test"
@@ -36,7 +37,7 @@ jobs:
     - build-test-image
     with:
       asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
-      api-url: https://api.devguard.org
+      api-url: https://api.main.devguard.org
       artifact-name: "test"
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
@@ -47,7 +48,7 @@ jobs:
     - container-scanning-test
     with:
       asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
-      api-url: https://api.devguard.org
+      api-url: https://api.main.devguard.org
       artifact-name: "test"
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    
@@ -56,7 +57,7 @@ jobs:
     uses: ./.github/workflows/dependency-risk-identification.yml
     with:
       asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
-      api-url: https://api.devguard.org
+      api-url: https://api.main.devguard.org
       artifact-name: "test"
       sbom-file: "sbom-in-repo.json"
 
