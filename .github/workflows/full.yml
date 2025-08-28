@@ -139,6 +139,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       disable-artifact-registry-as-image-store: ${{ inputs.disable-artifact-registry-as-image-store }}
+      artifact-name: ${{ inputs.artefact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       build-args: ${{ secrets.build-args }}
