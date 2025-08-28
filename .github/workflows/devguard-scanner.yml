@@ -19,6 +19,17 @@ jobs:
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
 
+   
+  devguard-scanner-with-artifact:
+    uses: ./.github/workflows/full.yml
+    with:
+      asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
+      disable-artifact-registry-as-image-store: true
+      api-url: https://api.main.devguard.org
+      artefact-name: "demo-artifact"
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}   
+
 
   build-test-image:
     uses: ./.github/workflows/build-image.yml

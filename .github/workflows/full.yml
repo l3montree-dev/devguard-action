@@ -66,6 +66,11 @@ on:
         required: false
         default: true
 
+      artefact-name:
+        type: string
+        required: false
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -121,7 +126,8 @@ jobs:
       path: ${{ inputs.path }}
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
-      web-ui: ${{ inputs.web-ui }}
+      web-ui: ${{ inputs.web-ui }}#
+#      artifact-name:   // WE ARE NOT!! PROVIDING THE ARTIFACT NAME RIGHT HERE - OTHERWISE CONTAINER AND SCA WOULD DO THE SAME ARTIFACT
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -148,6 +154,7 @@ jobs:
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
       web-ui: ${{ inputs.web-ui }}
+      artifact-name: ${{ inputs.artefact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -195,5 +202,6 @@ jobs:
     with:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
+      artifact-name: ${{ inputs.artefact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
