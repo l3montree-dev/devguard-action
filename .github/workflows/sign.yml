@@ -12,7 +12,7 @@ on:
       artifact-name:
         type: string
         required: false
-        default: ''
+        default: 'container'
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."  
 
     secrets:

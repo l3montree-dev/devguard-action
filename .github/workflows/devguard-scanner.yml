@@ -19,6 +19,17 @@ jobs:
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}
 
+   
+  devguard-scanner-with-artifact:
+    uses: ./.github/workflows/full.yml
+    with:
+      asset-name: "l3montree-cybersecurity/projects/devguard/assets/devguard-action"
+      disable-artifact-registry-as-image-store: true
+      api-url: https://api.main.devguard.org
+      artifact-name: "demo-artifact"
+    secrets:
+      devguard-token: ${{ secrets.DEVGUARD_TOKEN }}   
+
 
   build-test-image:
     uses: ./.github/workflows/build-image.yml
@@ -58,7 +69,7 @@ jobs:
     with:
       asset-name: l3montree-cybersecurity/projects/devguard/assets/devguard-action
       api-url: https://api.main.devguard.org
-      artifact-name: "test"
+      artifact-name: "source-code-sbom"
       sbom-file: "sbom-in-repo.json"
 
     secrets:
