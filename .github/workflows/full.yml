@@ -66,7 +66,7 @@ on:
         required: false
         default: true
 
-      artefact-name:
+      artifact-name:
         type: string
         required: false
         default: 'container'
@@ -140,7 +140,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       disable-artifact-registry-as-image-store: ${{ inputs.disable-artifact-registry-as-image-store }}
-      artifact-name: ${{ inputs.artefact-name }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       build-args: ${{ secrets.build-args }}
@@ -156,7 +156,7 @@ jobs:
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
       web-ui: ${{ inputs.web-ui }}
-      artifact-name: ${{ inputs.artefact-name }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -174,7 +174,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-already-in-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
-      artifact-name: ${{ inputs.artefact-name }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -190,7 +190,7 @@ jobs:
     with:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
-      artifact-name: ${{ inputs.artefact-name }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -206,6 +206,6 @@ jobs:
     with:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
-      artifact-name: ${{ inputs.artefact-name }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
