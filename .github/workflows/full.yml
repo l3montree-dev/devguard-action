@@ -40,17 +40,20 @@ on:
         description: 'oci image tag'
         type: string
         required: false
+
       should-deploy:
         description: 'Should the deploy job run - publishing the image to the desired Container Registry'
         type: boolean
         required: false
         default: true
+
       image-suffix:
         # Suffix for the image name
-        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a -scanner image and a -web image.'
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
         type: string
         required: false
         default: ''
+
       fail-on-risk:
         description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
         type: string
@@ -141,6 +144,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       disable-artifact-registry-as-image-store: ${{ inputs.disable-artifact-registry-as-image-store }}
       artifact-name: ${{ inputs.artifact-name }}
+      image-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       build-args: ${{ secrets.build-args }}
@@ -157,6 +161,7 @@ jobs:
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
       web-ui: ${{ inputs.web-ui }}
       artifact-name: ${{ inputs.artifact-name }}
+      image-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -174,7 +179,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       image-already-in-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
-      artifact-name: ${{ inputs.artifact-name }}
+      image-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -191,6 +196,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
       artifact-name: ${{ inputs.artifact-name }}
+      image-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
@@ -207,5 +213,6 @@ jobs:
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
       artifact-name: ${{ inputs.artifact-name }}
+      image-suffix: ${{ inputs.image-suffix }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
