@@ -27,6 +27,7 @@ jobs:
       disable-artifact-registry-as-image-store: true
       api-url: https://api.main.devguard.org
       artifact-name: "demo-artifact"
+      image-suffix: demo-artifact
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}   
 
