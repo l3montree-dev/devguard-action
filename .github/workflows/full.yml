@@ -180,6 +180,7 @@ jobs:
       api-url: ${{ inputs.api-url }}
       image-already-in-registry: ${{ inputs.disable-artifact-registry-as-image-store }}
       image-suffix: ${{ inputs.image-suffix }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
