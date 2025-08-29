@@ -19,6 +19,11 @@ on:
         required: false
         default: 'container'
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
+      image-suffix:
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
+        type: string
+        required: false
+        default: ''
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -32,13 +37,13 @@ jobs:
     - name: Download image-digest artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-digest${{ inputs.artifact-name}}
+        name: image-digest${{ inputs.image-suffix }}
         path: .
       continue-on-error: true
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-name }}
+        name: image-tag${{ inputs.image-suffix }}
         path: .
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
@@ -98,7 +103,7 @@ jobs:
     - name: Download build-provenance.json
       uses: actions/download-artifact@v4
       with:
-        name: build${{ inputs.artifact-name }}.provenance.json
+        name: build${{ inputs.image-suffix }}.provenance.json
     - name: Attest build-provenance.json
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       continue-on-error: true

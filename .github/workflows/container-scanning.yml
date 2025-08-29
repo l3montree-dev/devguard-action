@@ -37,6 +37,12 @@ on:
         required: false
         default: "https://app.devguard.org"
         description: "The URL of the DevGuard Web UI. This is used to link the results in the DevGuard Web UI."
+      image-suffix:
+        # Suffix for the image name
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
+        type: string
+        required: false
+        default: ''
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -55,14 +61,14 @@ jobs:
     - name: Download Docker image - if exists (gets created by build-image).If running this workflow independently, the image must be built first and provided as an artifact with the name 'oci-image'. See build-image.yml for more details.
       uses: actions/download-artifact@v4
       with:
-        name: oci-image${{ inputs.artifact-name }}
+        name: oci-image${{ inputs.image-suffix }}
         path: .
       if: inputs.fetch-image-from-registry == false
 
     - name: Download image-tag artifact (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-name }}
+        name: image-tag${{ inputs.image-suffix }}
         path: .
 
     - name: Setup crane

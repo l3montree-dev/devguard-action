@@ -19,7 +19,6 @@ on:
         type: string
         required: false
         default: "https://api.devguard.org"
-
       artifact-name:
         type: string
         required: false
@@ -30,6 +29,11 @@ on:
         default: false
         type: boolean
         description: "If the artifact size is too big for your github usage quota, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
+      image-suffix:
+        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
+        type: string
+        required: false
+        default: ''
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -89,7 +93,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: oci-image${{ inputs.artifact-name }}
+        name: oci-image${{ inputs.image-suffix }}
         path: ${{ inputs.image-destination-path }}
       if: inputs.disable-artifact-registry-as-image-store == false
 
@@ -102,8 +106,8 @@ jobs:
         if [ "${IMAGE}" != "" ]; then
           IMAGE_TAG="${IMAGE}"
         elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          if [ "${ARTIFACT_NAME}" != "" ]; then
-            IMAGE_TAG="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:${GITHUB_REF#refs/tags/}"  
+          if [ "${IMAGE_SUFFIX}" != "" ]; then
+            IMAGE_TAG="ghcr.io/${{ github.repository }}/${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"  
           else
             IMAGE_TAG="ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}"  
           fi
@@ -112,8 +116,8 @@ jobs:
           branch=${GITHUB_REF##*/}
           sha=${GITHUB_SHA::8}
           ts=$(date +%s)
-            if [ "${ARTIFACT_NAME}" != "" ]; then
-              IMAGE_TAG="ghcr.io/${{ github.repository }}/${ARTIFACT_NAME}:${branch}-${sha}-${ts}"
+            if [ "${IMAGE_SUFFIX}" != "" ]; then
+              IMAGE_TAG="ghcr.io/${{ github.repository }}/${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
             else
               IMAGE_TAG="ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}"
             fi
@@ -125,7 +129,7 @@ jobs:
         # necessary for the kaniko job
         echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
       env:
-        ARTIFACT_NAME: ${{ inputs.artifact-name }}  
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}  
         IMAGE: ${{ inputs.image }}
 
     - name: Upload to container registry
@@ -139,14 +143,14 @@ jobs:
     - name: Upload digest
       uses: actions/upload-artifact@v4
       with:
-        name: image-digest${{ inputs.artifact-name }}
+        name: image-digest${{ inputs.image-suffix }}
         path: image-digest.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
       uses: actions/upload-artifact@v4
       with:
-        name: image-tag${{ inputs.artifact-name }}
+        name: image-tag${{ inputs.image-suffix }}
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
@@ -159,4 +163,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: build.provenance.json
-        name: build${{ inputs.artifact-name }}.provenance.json
+        name: build${{ inputs.image-suffix }}.provenance.json
