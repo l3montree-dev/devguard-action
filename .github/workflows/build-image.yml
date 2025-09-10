@@ -74,7 +74,7 @@ jobs:
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
-      uses: docker://gcr.io/kaniko-project/executor:v1.23.0
+      uses: docker://ghcr.io/l3montree-dev/kaniko/executor:v1.26.0-debug
       with:
         args: ${{ env.BUILD_ARGS }}
 
