@@ -74,13 +74,13 @@ jobs:
     - name: Download artifact purl (can be created by build-image)
       uses: actions/download-artifact@v4
       with:
-        name: artifact-name${{ inputs.image-suffix }}  
+        name: artifact-purl${{ inputs.image-suffix }}  
       if: inputs.artifact-name == ''  
 
     - name: set artifact-name variable if it is empty
       run: |
-        if [ -z "${{ inputs.artifact-name }}" ] && [ -f artifact-name.txt ]; then
-          echo "ARTIFACT_NAME=$(cat artifact-name.txt)" >> $GITHUB_ENV
+        if [ -z "${{ inputs.artifact-name }}" ] && [ -f artifact-purl.txt ]; then
+          echo "ARTIFACT_NAME=$(cat artifact-purl.txt)" >> $GITHUB_ENV
           echo "Using artifact name from file: $ARTIFACT_NAME"
         else
           echo "ARTIFACT_NAME=${{ inputs.artifact-name }}" >> $GITHUB_ENV

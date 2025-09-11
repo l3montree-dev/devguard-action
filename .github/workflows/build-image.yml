@@ -147,35 +147,23 @@ jobs:
         path: image-digest.txt
 
     - name: Set Artifact purl
-      id: set-artifact-purl
       run: |
-        if [ "${{ inputs.artifact-name }}" != "" ]; then
-          PURL="${{ inputs.artifact-name }}"
+        if [ -n "$ARTIFACT_NAME" ]; then
+          PURL="$ARTIFACT_NAME"
         else
-          # Parse registry, namespace, name, and version
-          # Example: registry.gitlab.com/namespace/project/suffix:version
           IMAGE_TAG=$(cat image-tag.txt)
           REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
           VERSION=${IMAGE_TAG##*:}
-            
-          # Extract namespace/name (everything after registry)
           NAMESPACE_AND_NAME=${REGISTRY_AND_IMAGE#*/}
-
-          # Extract name (without namespace)
           NAME=${NAMESPACE_AND_NAME##*/}
-      
-          # URL encode registry for repository_url parameter
           REPOSITORY_URL="$REGISTRY_AND_IMAGE"
-      
-          # Generate PURL: pkg:oci/name?repository_url=registry&tag=version
           PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL&tag=$VERSION"
-          
         fi
 
         echo "$PURL" > artifact-purl.txt
         echo "PURL=$PURL" >> $GITHUB_ENV
       env:
-        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
 
     - name: Upload artifact purl
       uses: actions/upload-artifact@v4
