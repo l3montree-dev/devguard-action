@@ -22,7 +22,7 @@ on:
       artifact-name:
         type: string
         required: false
-        default: 'container'
+        default: ''
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty." 
       disable-artifact-registry-as-image-store:
         required: false
@@ -145,6 +145,55 @@ jobs:
       with:
         name: image-digest${{ inputs.image-suffix }}
         path: image-digest.txt
+
+    - name: Set Artifact purl
+      id: set-artifact-purl
+      run: |
+        if [ "${{ inputs.artifact-name }}" != "" ]; then
+          PURL="${{ inputs.artifact-name }}"
+        else
+          # Parse registry, namespace, name, and version
+          # Example: registry.gitlab.com/namespace/project/suffix:version
+          IMAGE_TAG=$(cat image-tag.txt)
+          REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
+          VERSION=${IMAGE_TAG##*:}
+            
+          # Extract namespace/name (everything after registry)
+          NAMESPACE_AND_NAME=${REGISTRY_AND_IMAGE#*/}
+
+          # Extract name (without namespace)
+          NAME=${NAMESPACE_AND_NAME##*/}
+      
+          # URL encode registry for repository_url parameter
+          REPOSITORY_URL="$REGISTRY_AND_IMAGE"
+      
+          # Generate PURL: pkg:oci/name?repository_url=registry&tag=version
+          PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL&tag=$VERSION"
+          
+        fi
+
+        echo "$PURL" > artifact-purl.txt
+        echo "PURL=$PURL" >> $GITHUB_ENV
+      env:
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+
+    - name: Upload artifact purl
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-purl${{ inputs.image-suffix }}
+        path: artifact-purl.txt
+
+    - name: create safe purl
+      run: |
+        SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
+        echo "$SAFE_PURL" > artifact-name-safe.txt
+        echo "Safe artifact name: $SAFE_PURL"
+
+    - name: Upload safe artifact purl
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-purl-safe${{ inputs.image-suffix }}
+        path: artifact-purl-safe.txt    
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag

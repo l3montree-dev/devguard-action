@@ -17,7 +17,7 @@ on:
       artifact-name:
         type: string
         required: false
-        default: 'container'
+        default: ''
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
       image-suffix:
         description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
@@ -45,20 +45,54 @@ jobs:
       with:
         name: image-tag${{ inputs.image-suffix }}
         path: .
+    
+    - name: Download artifact purl (can be created by build-image)
+      uses: actions/download-artifact@v4
+      with:
+        name: artifact-name${{ inputs.image-suffix }}  
+      if: inputs.artifact-name == ''
+
+    - name: Download safe-artifact (can be created by build-image)
+      uses: actions/download-artifact@v4
+      with:
+        name: artifact-purl-safe${{ inputs.image-suffix }} 
+      if: inputs.artifact-name == ''  
+
+    - name: set artifact-name variable if it is empty
+      run: |
+        if [ -z "${{ inputs.artifact-name }}" ] && [ -f artifact-name.txt ]; then
+          echo "ARTIFACT_NAME=$(cat artifact-name.txt)" >> $GITHUB_ENV
+          echo "Using artifact name from file: $ARTIFACT_NAME"
+          # For API calls, use safe artifact name if it exists
+          if [ -f artifact-purl-safe.txt ]; then
+            echo "API_ARTIFACT_NAME=$(cat artifact-purl-safe.txt)" >> $GITHUB_ENV
+          else
+            echo "API_ARTIFACT_NAME=$(cat artifact-name.txt)" >> $GITHUB_ENV
+          fi
+        else
+          echo "ARTIFACT_NAME=${{ inputs.artifact-name }}" >> $GITHUB_ENV
+          echo "API_ARTIFACT_NAME=${{ inputs.artifact-name }}" >> $GITHUB_ENV
+          echo "Using provided artifact name: ${{ inputs.artifact-name }}"
+        fi    
+        
     - name: Get SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ inputs.artifact-name }}/sbom.json' --token='${{ secrets.devguard-token }}' > sbom.json
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json' --token='${{ secrets.devguard-token }}' > sbom.json
           "
+      env:
+        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
     - name: Get VeX
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
             sh -c " 
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ inputs.artifact-name }}/vex.json' --token='${{ secrets.devguard-token }}' > vex.json
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/vex.json/' --token='${{ secrets.devguard-token }}' > vex.json
             "
+      env:
+        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}      
     - name: Get SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
@@ -72,33 +106,39 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ env.ARTIFACT_NAME }}
             fi
           "
+      env:
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}    
     - name: Attest VeX
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} vex.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} vex.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ env.ARTIFACT_NAME }}
             fi
           "
+      env:
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
     - name: Attest SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} sarif.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} sarif.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             fi
           "
+      env:
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
     # download build-provenance.json if it exists
     - name: Download build-provenance.json
       uses: actions/download-artifact@v4
@@ -111,8 +151,9 @@ jobs:
         args: >
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }}
-            fi
+              devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
           "
+      env:
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}  
