@@ -162,6 +162,7 @@ jobs:
 
         echo "$PURL" > artifact-purl.txt
         echo "PURL=$PURL" >> $GITHUB_ENV
+        echo "Using artifact name: $PURL"
       env:
         ARTIFACT_NAME: ${{ inputs.artifact-name }}
 
@@ -174,7 +175,7 @@ jobs:
     - name: create safe purl
       run: |
         SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
-        echo "$SAFE_PURL" > artifact-name-safe.txt
+        echo "$SAFE_PURL" > artifact-purl-safe.txt
         echo "Safe artifact name: $SAFE_PURL"
 
     - name: Upload safe artifact purl
