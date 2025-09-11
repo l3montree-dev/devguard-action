@@ -80,7 +80,7 @@ jobs:
       with:
         args: >
           sh -c "
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json' --token='${{ secrets.devguard-token }}' > sbom.json
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json/' --token='${{ secrets.devguard-token }}' > sbom.json
           "
       env:
         API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
