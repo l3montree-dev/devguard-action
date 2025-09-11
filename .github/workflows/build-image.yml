@@ -22,7 +22,7 @@ on:
       artifact-name:
         type: string
         required: false
-        default: 'container'
+        default: ''
         description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty." 
       disable-artifact-registry-as-image-store:
         required: false
@@ -145,6 +145,44 @@ jobs:
       with:
         name: image-digest${{ inputs.image-suffix }}
         path: image-digest.txt
+
+    - name: Set Artifact purl
+      run: |
+        if [ -n "$ARTIFACT_NAME" ]; then
+          PURL="$ARTIFACT_NAME"
+        else
+          IMAGE_TAG=$(cat image-tag.txt)
+          REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
+          VERSION=${IMAGE_TAG##*:}
+          NAMESPACE_AND_NAME=${REGISTRY_AND_IMAGE#*/}
+          NAME=${NAMESPACE_AND_NAME##*/}
+          REPOSITORY_URL="$REGISTRY_AND_IMAGE"
+          PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL&tag=$VERSION"
+        fi
+
+        echo "$PURL" > artifact-purl.txt
+        echo "PURL=$PURL" >> $GITHUB_ENV
+        echo "Using artifact name: $PURL"
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+
+    - name: Upload artifact purl
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-purl${{ inputs.image-suffix }}
+        path: artifact-purl.txt
+
+    - name: create safe purl
+      run: |
+        SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
+        echo "$SAFE_PURL" > artifact-purl-safe.txt
+        echo "Safe artifact name: $SAFE_PURL"
+
+    - name: Upload safe artifact purl
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-purl-safe${{ inputs.image-suffix }}
+        path: artifact-purl-safe.txt    
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
