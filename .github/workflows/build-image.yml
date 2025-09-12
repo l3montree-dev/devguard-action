@@ -157,7 +157,7 @@ jobs:
           NAMESPACE_AND_NAME=${REGISTRY_AND_IMAGE#*/}
           NAME=${NAMESPACE_AND_NAME##*/}
           REPOSITORY_URL="$REGISTRY_AND_IMAGE"
-          PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL&tag=$VERSION"
+          PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL"
         fi
 
         echo "$PURL" > artifact-purl.txt
