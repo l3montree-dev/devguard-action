@@ -39,7 +39,7 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
     - name: DevGuard Infrastructure as Code
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v0.17.1
       continue-on-error: ${{ inputs.continue-on-open-code-risk }}
       with:
         args: devguard-scanner iac --assetName=${{ inputs.asset-name }}   --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{ inputs.path }} --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --webUI=${{ inputs.web-ui }}
