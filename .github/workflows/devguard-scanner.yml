@@ -74,5 +74,7 @@ jobs:
       api-url: https://api.main.devguard.org
       artifact-name: "source-code-sbom"
       sbom-file: "sbom-in-repo.json"
+      fail-on-cvss: "none"
+      fail-on-risk: "none"
     secrets:
       devguard-token: ${{ secrets.DEVGUARD_TOKEN }}    

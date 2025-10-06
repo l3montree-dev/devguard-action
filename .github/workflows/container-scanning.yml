@@ -20,11 +20,11 @@ on:
         required: false
         default: false
       fail-on-risk:
-        description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
+        description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low, none'
         type: string
         required: false
       fail-on-cvss:
-        description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low'
+        description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low, none'
         type: string
         required: false  
       artifact-name:
