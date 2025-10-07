@@ -47,7 +47,7 @@ jobs:
         persist-credentials: true # we need the credentials to be able to use the devguard-scanner in private repositories
       uses: actions/checkout@v4 # Check out the repository content to the runner
     - name: DevGuard SCA
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v0.18.0
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: devguard-scanner sca --assetName=${{ inputs.asset-name }}  --apiUrl=${{
           inputs.api-url }} --token="${{ secrets.devguard-token }}" --path=${{

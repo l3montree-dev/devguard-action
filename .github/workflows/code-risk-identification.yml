@@ -46,6 +46,6 @@ jobs:
       if: ${{ inputs.sarif-artifact-name != '' }}  
 
     - name: DevGuard Code Risk Identification
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v0.18.0
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: devguard-scanner sarif ${{ inputs.sarif-file }} --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --webUI=${{ inputs.web-ui }}
