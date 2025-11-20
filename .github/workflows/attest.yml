@@ -70,9 +70,11 @@ jobs:
             echo "API_ARTIFACT_NAME=$(cat artifact-purl.txt)" >> $GITHUB_ENV
           fi
         else
+          # make sure to url encode
           echo "ARTIFACT_NAME=${{ inputs.artifact-name }}" >> $GITHUB_ENV
-          echo "API_ARTIFACT_NAME=${{ inputs.artifact-name }}" >> $GITHUB_ENV
+          echo "API_ARTIFACT_NAME=$(echo -n "${{ inputs.artifact-name }}" | jq -s -R -r @uri)" >> $GITHUB_ENV
           echo "Using provided artifact name: ${{ inputs.artifact-name }}"
+          echo "Encoded: $API_ARTIFACT_NAME"
         fi    
         
     - name: Get SBOM
