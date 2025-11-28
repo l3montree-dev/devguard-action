@@ -74,7 +74,7 @@ jobs:
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
       id: build_image
-      uses: docker://ghcr.io/l3montree-dev/kaniko/executor:v1.26.0-debug
+      uses: docker://registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.26.0-devguard-scanner-v0.19.2-customized-busybox-jq@sha256:3a81ba6eb1c5e3ba8904faef26411a177dbbc0de2005bc0f2eb20ab9ee7f71a2
       with:
         args: ${{ env.BUILD_ARGS }}
 
