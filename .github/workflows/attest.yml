@@ -78,7 +78,7 @@ jobs:
         fi    
         
     - name: Get SBOM
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
@@ -87,7 +87,7 @@ jobs:
       env:
         API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
     - name: Get VeX
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
             sh -c " 
@@ -96,14 +96,14 @@ jobs:
       env:
         API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}      
     - name: Get SAST-Results
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
          args: >
             sh -c " 
             slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner get '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}' > sarif.json
             "
     - name: Attest SBOM
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
@@ -116,7 +116,7 @@ jobs:
       env:
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}    
     - name: Attest VeX
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
@@ -129,7 +129,7 @@ jobs:
       env:
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
     - name: Attest SAST-Results
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: >
           sh -c "
@@ -147,7 +147,7 @@ jobs:
       with:
         name: build${{ inputs.image-suffix }}.provenance.json
     - name: Attest build-provenance.json
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0-rc.1
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       continue-on-error: true
       with:
         args: >
