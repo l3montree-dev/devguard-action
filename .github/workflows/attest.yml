@@ -24,6 +24,13 @@ on:
         type: string
         required: false
         default: ''
+      should-deploy:
+        # Input to determine if the attestation job should run
+        description: 'Should the attestation job run'
+        type: boolean
+        required: false
+        default: true
+
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -32,6 +39,7 @@ on:
 
 jobs:
   attest:
+    if: inputs.should-deploy
     runs-on: ubuntu-latest
     steps:
     - name: Download image-digest artifact (can be created by build-image)
