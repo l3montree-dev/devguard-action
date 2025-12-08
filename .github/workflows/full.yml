@@ -193,6 +193,7 @@ jobs:
     - call-iac
     uses: ./.github/workflows/sign.yml
     with:
+      should-deploy: ${{ inputs.should-deploy }}
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
       artifact-name: ${{ inputs.artifact-name }}
@@ -210,6 +211,7 @@ jobs:
     - call-iac
     uses: ./.github/workflows/attest.yml
     with:
+      should-deploy: ${{ inputs.should-deploy }}
       api-url: ${{ inputs.api-url }}
       asset-name: ${{ inputs.asset-name }}
       artifact-name: ${{ inputs.artifact-name }}

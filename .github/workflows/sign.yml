@@ -19,6 +19,12 @@ on:
         type: string
         required: false
         default: ''
+      should-deploy:
+        # Input to determine if the job should run
+        description: 'Should the job run'
+        type: boolean
+        required: false
+        default: true
 
     secrets:
       devguard-token:
@@ -27,6 +33,7 @@ on:
 
 jobs:
   sign:
+    if: inputs.should-deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
