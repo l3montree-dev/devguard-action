@@ -20,8 +20,8 @@ on:
         required: false
         default: ''
       should-deploy:
-        # Input to determine if the job should run
-        description: 'Should the job run'
+        # Input to determine if the signing job should run
+        description: 'Should the signing job run'
         type: boolean
         required: false
         default: true
