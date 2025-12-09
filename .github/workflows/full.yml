@@ -191,6 +191,7 @@ jobs:
     - call-sast
     - call-secret-scanning
     - call-iac
+    - call-deploy
     uses: ./.github/workflows/sign.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
@@ -209,6 +210,7 @@ jobs:
     - call-sast
     - call-secret-scanning
     - call-iac
+    - call-deploy
     uses: ./.github/workflows/attest.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
