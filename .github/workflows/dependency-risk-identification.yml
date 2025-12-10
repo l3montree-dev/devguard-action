@@ -63,6 +63,6 @@ jobs:
       if: ${{ inputs.sbom-artifact-name != '' }}
 
     - name: DevGuard Dependency Risk Identification
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest-latest
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
       with:
         args: devguard-scanner sbom ${{ inputs.sbom-file }} --assetName=${{ inputs.asset-name }}  --apiUrl=${{ inputs.api-url }} --token="${{ secrets.devguard-token }}" --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }} --artifactName=${{ inputs.artifact-name }} --webUI=${{ inputs.web-ui }} --failOnRisk=${{ inputs.fail-on-risk }} --failOnCVSS=${{ inputs.fail-on-cvss }}
