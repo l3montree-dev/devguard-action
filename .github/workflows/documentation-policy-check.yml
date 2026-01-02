@@ -14,8 +14,7 @@ on:
 
 jobs:
   documentation_check:
-    uses: ./.github/workflows/attestor.yaml
+    uses: ./.github/workflows/attestor.yml
     with:
       documentation-repo: ${{ inputs.documentation-repo }}
       production-repos: ${{ inputs.production-repo}}
-
