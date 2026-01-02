@@ -2,7 +2,15 @@
 
 name: Documentation Policy Check
 on:
-  pull_request
+  pull_request:
+  workflow_call:
+    inputs:
+      documentation-repo:
+        required: true
+        type: string
+      production-repo:
+        required: true
+        type: string
 
 jobs:
   documentation_check:
