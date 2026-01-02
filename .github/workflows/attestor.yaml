@@ -1,0 +1,74 @@
+name: Attestor Workflow
+
+on:
+    workflow_call:
+      inputs:
+        documentation-repo:
+          type: string
+          required: true
+          description: "Write down the Documentation Repository that needs to be merged first"
+
+        production-repos:
+          type: string
+          required: true
+          description: "Write down every repository that has to wait for documentation to be merged first."
+
+
+ 
+jobs:
+  attestor: 
+    runs-on: ubuntu-latest
+    container: ghcr.io/l3montree-dev/compliance-as-code-attestors:latest 
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      OUTPUT_FILE: /tmp/attest.json
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Env Sanity Check
+        run: echo $PR_NUMBER && echo $PR_TITLE
+
+      - name: Pull Request Check
+        run: |
+          /app/compliance-as-code-attestors prAttestation \
+            --repos "${{ inputs.documentation-repo }}" \
+            --repos "${{ inputs.production-repos }}" \
+            --pull_request_title "$PR_TITLE" \
+            --pull_request_number "$PR_NUMBER" > "$OUTPUT_FILE"
+          cat "$OUTPUT_FILE"
+          echo "created $OUTPUT_FILE"
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: attestation-${{ env.PR_NUMBER }}
+          path: ${{ env.OUTPUT_FILE }}
+
+      - name: Download OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: 1.10.1
+      
+      - name: Evaluate Policy
+      
+        run: | 
+          echo '{"documentation_repo": "${{ inputs.documentation-repo }}"}' > /tmp/doc_repo.json
+          opa eval \
+            --data policy.rego \
+            --data /tmp/doc_repo.json \
+            --input "$OUTPUT_FILE" \
+            'data.documentationMerged.failure_msg' \
+            --format  raw \
+            --fail-defined
+
+            
+
+
+      # - name: Checkout
+      #   uses: actions/checkout@v5
+      #   with:
+      #     repository: l3montree-dev/devguard-documentation
+      #     path: main
