@@ -8,7 +8,7 @@ on:
       documentation-repo:
         required: true
         type: string
-      production-repo:
+      production-repos:
         required: true
         type: string
 
@@ -17,4 +17,4 @@ jobs:
     uses: ./.github/workflows/attestor.yml
     with:
       documentation-repo: ${{ inputs.documentation-repo }}
-      production-repos: ${{ inputs.production-repo}}
+      production-repos: ${{ inputs.production-repos}}
