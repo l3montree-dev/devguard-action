@@ -2,27 +2,12 @@
 
 name: Documentation Policy Check
 on:
-  workflow_call:
-    inputs:
-      documentation-repo:
-        type: string
-        required: true
-        description: "Write down the Documentation Repository that needs to be merged first"
-
-      production-repos:
-        type: string
-        required: true
-        description: "Write down every repository that has to wait for documentation to be merged first."
-
-
-
-        
-
+  pull_request
 
 jobs:
   documentation_check:
-    uses: ./.github/workflows/attestor.yml
+    uses: ./.github/workflows/attestor.yaml
     with:
       documentation-repo: ${{ inputs.documentation-repo }}
-      production-repos: ${{ inputs.production-repo }}
+      production-repos: ${{ inputs.production-repo}}
 
