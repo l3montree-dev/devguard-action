@@ -40,10 +40,10 @@ jobs:
 
       - name: Pull Request Check
         run: |
-          compliance-as-code-attestor prAttestation \
+          /usr/compliance-as-code-attestor prAttestation \
             --repos "${{ inputs.documentation-repo }}" \
             --repos "${{ inputs.production-repos }}" \
-            --pull_request_title "$PR_TITLE" \^
+            --pull_request_title "$PR_TITLE" \
             --pull_request_number "$PR_NUMBER" > "$OUTPUT_FILE"
           cat "$OUTPUT_FILE"
           echo "created $OUTPUT_FILE"
