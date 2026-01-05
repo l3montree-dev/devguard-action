@@ -26,8 +26,10 @@ jobs:
     env:
       PR_NUMBER: ${{ github.event.number }}
       PR_TITLE: ${{ github.event.pull_request.title }}
-      OUTPUT_FILE: /tmp/attest.json
+      ATTESTATION_FILE: /tmp/attest.json
       POLICY_REGO: /tmp/policy.rego
+      DOCUMENTATION_REPO: /tmp/doc_repo.json
+
 
     steps:
       - name: Checkout repo
@@ -48,15 +50,15 @@ jobs:
             --repos "${{ inputs.documentation-repo }}" \
             --repos "${{ inputs.production-repos }}" \
             --pull_request_title "$PR_TITLE" \
-            --pull_request_number "$PR_NUMBER" > "$OUTPUT_FILE"
-          cat "$OUTPUT_FILE"
-          echo "created $OUTPUT_FILE"
+            --pull_request_number "$PR_NUMBER" > "$ATTESTATION_FILE"
+          cat "$ATTESTATION_FILE"
+          echo "created $ATTESTATION_FILE"
 
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: attestation-${{ env.PR_NUMBER }}
-          path: ${{ env.OUTPUT_FILE }}
+          path: ${{ env.ATTESTATION_FILE }}
 
       - name: fetch policy file
         run: |
@@ -71,9 +73,11 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
+          echo '{"documentation_repo": "${{ inputs.documentation-repo }}"}' > /tmp/doc_repo.json
           opa eval \
             --data $POLICY_REGO \
-            --input $OUTPUT_FILE \
+            --data $DOCUMENTATION_REPO \
+            --input $ATTESTATION_FILE \
             'data.documentationMerged.failure_msg' \
             --format  raw \
             --fail-defined
