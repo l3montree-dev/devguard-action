@@ -27,6 +27,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       PR_TITLE: ${{ github.event.pull_request.title }}
       OUTPUT_FILE: /tmp/attest.json
+      POLICY_REGO: /tmp/policy.rego
 
     steps:
       - name: Checkout repo
@@ -60,7 +61,7 @@ jobs:
       - name: fetch policy file
         run: |
           curl -o policy.rego "${{ inputs.policy-url }}"
-          cat policy.rego > POLICY_REGO
+          cat policy.rego > "$POLICY_REGO"
 
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
@@ -70,11 +71,10 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
-          echo '{"documentation_repo": "${{ inputs.documentation-repo }}"}' > /tmp/doc_repo.json
+          echo "${{ inputs.documentation-repo }}" > DOCUMENTATION_REPO.json
           opa eval \
-            --data "$POLICY_REGO" \
-            --data /tmp/doc_repo.json \
-            --input "$OUTPUT_FILE" \
+            --data $POLICY_REGO \
+            --input $OUTPUT_FILE \
             'data.documentationMerged.failure_msg' \
             --format  raw \
             --fail-defined
