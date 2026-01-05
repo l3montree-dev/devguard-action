@@ -59,9 +59,8 @@ jobs:
 
       - name: fetch policy file
         run: |
-          # curl -o policy.rego "$POLICY_URL"
+          curl -o policy.rego "${{ inputs.policy-url }}"
           cat policy.rego
-
 
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
@@ -73,7 +72,7 @@ jobs:
         run: | 
           echo '{"documentation_repo": "${{ inputs.documentation-repo }}"}' > /tmp/doc_repo.json
           opa eval \
-            --data policy.rego \
+            --data "${{inputs.policy-url}}" \
             --data /tmp/doc_repo.json \
             --input "$OUTPUT_FILE" \
             'data.documentationMerged.failure_msg' \
