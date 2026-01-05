@@ -33,7 +33,7 @@ jobs:
 
       - name: Pull Request Check
         run: |
-          /app/compliance-as-code-attestors prAttestation \
+          compliance-as-code-attestors prAttestation \
             --repos "${{ inputs.documentation-repo }}" \
             --repos "${{ inputs.production-repos }}" \
             --pull_request_title "$PR_TITLE" \
@@ -65,12 +65,4 @@ jobs:
             --fail-defined
 
             
-
-
-      # - name: Checkout
-      #   uses: actions/checkout@v5
-      #   with:
-      #     repository: l3montree-dev/devguard-documentation
-      #     path: main
-
 
