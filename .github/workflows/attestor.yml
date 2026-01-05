@@ -31,12 +31,19 @@ jobs:
       - name: Env Sanity Check
         run: echo $PR_NUMBER && echo $PR_TITLE
 
+      - name: Debug binary
+        run: |
+          ls -la /usr/local/bin
+          which compliance-as-code-attestor || true
+          /usr/local/bin/compliance-as-code-attestor --help || true
+
+
       - name: Pull Request Check
         run: |
-          usr/local/bin/compliance-as-code-attestor prAttestation \
+          compliance-as-code-attestor prAttestation \
             --repos "${{ inputs.documentation-repo }}" \
             --repos "${{ inputs.production-repos }}" \
-            --pull_request_title "$PR_TITLE" \
+            --pull_request_title "$PR_TITLE" \^
             --pull_request_number "$PR_NUMBER" > "$OUTPUT_FILE"
           cat "$OUTPUT_FILE"
           echo "created $OUTPUT_FILE"
