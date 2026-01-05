@@ -37,10 +37,9 @@ jobs:
           which compliance-as-code-attestor || true
           /usr/local/bin/compliance-as-code-attestor --help || true
 
-
       - name: Pull Request Check
         run: |
-          /usr/compliance-as-code-attestor prAttestation \
+          /usr/local/bin/compliance-as-code-attestor prAttestation \
             --repos "${{ inputs.documentation-repo }}" \
             --repos "${{ inputs.production-repos }}" \
             --pull_request_title "$PR_TITLE" \
