@@ -71,7 +71,6 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
-          echo "${{ inputs.documentation-repo }}" > DOCUMENTATION_REPO.json
           opa eval \
             --data $POLICY_REGO \
             --input $OUTPUT_FILE \
