@@ -11,6 +11,9 @@ on:
       production-repos:
         required: true
         type: string
+      policy-url:
+        required: true
+        type: string
 
 jobs:
   documentation_check:
@@ -18,3 +21,4 @@ jobs:
     with:
       documentation-repo: ${{ inputs.documentation-repo }}
       production-repos: ${{ inputs.production-repos}}
+      policy-url: ${{ inputs.policy-url }}

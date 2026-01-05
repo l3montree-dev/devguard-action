@@ -13,6 +13,10 @@ on:
           required: true
           description: "Write down every repository that has to wait for documentation to be merged first."
 
+        policy-url:
+          type: string
+          required: true
+          description: "URL to the policy file via raw.githubusercontent.com"
 
  
 jobs:
@@ -52,6 +56,12 @@ jobs:
         with:
           name: attestation-${{ env.PR_NUMBER }}
           path: ${{ env.OUTPUT_FILE }}
+
+      - name: fetch policy file
+        run: |
+          # curl -o policy.rego "$POLICY_URL"
+          cat policy.rego
+
 
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
