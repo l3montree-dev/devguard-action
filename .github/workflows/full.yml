@@ -101,7 +101,7 @@ jobs:
       devguard-token: ${{ secrets.devguard-token }}
 
   call-sast:
-    uses: ./.github/workflows/sast.yml
+    uses: ./.github/workflows/static-application-security-testing.yml
     with:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
