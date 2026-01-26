@@ -5,16 +5,16 @@ on:
   pull_request:
   workflow_call:
     inputs:
-      documentation-repo:
+      documentation_repo:
         required: true
         type: string
-      production-repos:
+      production_repo:
         required: true
         type: string
-      policy-url:
+      policy_url:
         required: true
         type: string
-      json-path:
+      json_path:
         required: false
         type: string
 
@@ -22,7 +22,7 @@ jobs:
   documentation_check:
     uses: ./.github/workflows/docu-policy.yml
     with:
-      documentation-repo: ${{ inputs.documentation-repo }}
-      production-repos: ${{ inputs.production-repos}}
-      policy-url: ${{ inputs.policy-url }}
-      json-path: ${{ inputs.json-path }}
+      documentation_repo: ${{ inputs.documentation_repo }}
+      production_repo: ${{ inputs.production_repo }}
+      policy_url: ${{ inputs.policy_url }}
+      json_path: ${{ inputs.json_path }}
