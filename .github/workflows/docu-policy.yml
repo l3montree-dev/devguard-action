@@ -26,7 +26,7 @@ on:
 jobs:
   attestor: 
     runs-on: ubuntu-latest
-    container: ghcr.io/l3montree-dev/compliance-as-code-attestors:latest 
+    container: ghcr.io/l3montree-dev/compliance-as-code-witness:latest 
     env:
       PR_NUMBER: ${{ github.event.number }}
       PR_TITLE: ${{ github.event.pull_request.title }}
@@ -46,8 +46,8 @@ jobs:
       - name: Debug binary
         run: |
           ls -la /usr/local/bin
-          which compliance-as-code-attestor || true
-          /usr/local/bin/compliance-as-code-attestor --help || true
+          which compliance-as-code-witness || true
+          /usr/local/bin/compliance-as-code-witness --help || true
 
       - name: Pull Request Check
         run: |
