@@ -1,22 +1,26 @@
-name: Attestor Workflow
+name: Cross Repository Issue Consumer
 
 on:
     workflow_call:
       inputs:
-        documentation-repo:
+        documentation_repo:
           type: string
           required: true
           description: "Write down the Documentation Repository that needs to be merged first"
 
-        production-repos:
+        production_repos:
           type: string
           required: true
           description: "Write down every repository that has to wait for documentation to be merged first."
 
-        policy-url:
+        policy_url:
           type: string
           required: true
           description: "URL to the policy file via raw.githubusercontent.com"
+        json_path:
+          type: string
+          required: false
+          description: "Write down the JSONPath filter expression to filter the issues (optional)"
 
  
 jobs:
@@ -29,6 +33,7 @@ jobs:
       ATTESTATION_FILE: /tmp/attest.json
       POLICY_REGO: /tmp/policy.rego
       DOCUMENTATION_REPO: /tmp/doc_repo.json
+      MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
 
 
     steps:
@@ -36,7 +41,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Env Sanity Check
-        run: echo $PR_NUMBER && echo $PR_TITLE
+        run: echo $MERGE_COMMIT_SHA && echo $PR_TITLE
 
       - name: Debug binary
         run: |
@@ -46,23 +51,22 @@ jobs:
 
       - name: Pull Request Check
         run: |
-          /usr/local/bin/compliance-as-code-attestor prAttestation \
-            --repos "${{ inputs.documentation-repo }}" \
-            --repos "${{ inputs.production-repos }}" \
-            --pull_request_title "$PR_TITLE" \
-            --pull_request_number "$PR_NUMBER" > "$ATTESTATION_FILE"
+          /usr/local/bin/compliance-as-code-witness github issue \
+            --repository "${{ inputs.documentation_repo }}" \
+            --repository "${{ inputs.production_repos }}" \
+            --filter="${{ inputs.json_path }}" \
           cat "$ATTESTATION_FILE"
           echo "created $ATTESTATION_FILE"
 
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: attestation-${{ env.PR_NUMBER }}
+          name: attestation-${{ env.MERGE_COMMIT_SHA }}
           path: ${{ env.ATTESTATION_FILE }}
 
       - name: fetch policy file
         run: |
-          curl -o policy.rego "${{ inputs.policy-url }}"
+          curl -o policy.rego "${{ inputs.policy_url }}"
           cat policy.rego > "$POLICY_REGO"
 
       - name: Download OPA
@@ -73,14 +77,15 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
-          echo '{"documentation_repo": "${{ inputs.documentation-repo }}"}' > /tmp/doc_repo.json
+
+          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repos }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
           opa eval \
             --data $POLICY_REGO \
-            --data $DOCUMENTATION_REPO \
+            --data $DOCUMENTATION_REPO \x
             --input $ATTESTATION_FILE \
             'data.documentationMerged.failure_msg' \
             --format  raw \
             --fail-defined
 
-            
+
 

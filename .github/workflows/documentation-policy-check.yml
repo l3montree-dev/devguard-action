@@ -14,11 +14,15 @@ on:
       policy-url:
         required: true
         type: string
+      json-path:
+        required: false
+        type: string
 
 jobs:
   documentation_check:
-    uses: ./.github/workflows/attestor.yml
+    uses: ./.github/workflows/docu-policy.yml
     with:
       documentation-repo: ${{ inputs.documentation-repo }}
       production-repos: ${{ inputs.production-repos}}
       policy-url: ${{ inputs.policy-url }}
+      json-path: ${{ inputs.json-path }}
