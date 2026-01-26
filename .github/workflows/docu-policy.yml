@@ -8,7 +8,7 @@ on:
           required: true
           description: "Write down the Documentation Repository that needs to be merged first"
 
-        production_repos:
+        production_repo:
           type: string
           required: true
           description: "Write down every repository that has to wait for documentation to be merged first."
