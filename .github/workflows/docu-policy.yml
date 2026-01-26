@@ -78,7 +78,7 @@ jobs:
       
         run: | 
 
-          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repos }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
+          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
           opa eval \
             --data $POLICY_REGO \
             --data $DOCUMENTATION_REPO \
