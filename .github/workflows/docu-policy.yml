@@ -54,7 +54,7 @@ jobs:
           /usr/local/bin/compliance-as-code-witness github issue \
             --repository "${{ inputs.documentation_repo }}" \
             --repository "${{ inputs.production_repos }}" \
-            --filter="${{ inputs.json_path }}" \
+            --filter="${{ inputs.json_path }}" > "$ATTESTATION_FILE" 
           cat "$ATTESTATION_FILE"
           echo "created $ATTESTATION_FILE"
 
@@ -81,9 +81,9 @@ jobs:
           echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repos }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
           opa eval \
             --data $POLICY_REGO \
-            --data $DOCUMENTATION_REPO \x
+            --data $DOCUMENTATION_REPO \
             --input $ATTESTATION_FILE \
-            'data.documentationMerged.failure_msg' \
+            'data.documentationMerged.failure_msg[_]' \
             --format  raw \
             --fail-defined
 
