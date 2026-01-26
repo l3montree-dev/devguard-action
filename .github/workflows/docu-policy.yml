@@ -53,7 +53,7 @@ jobs:
         run: |
           /usr/local/bin/compliance-as-code-witness github issue \
             --repository "${{ inputs.documentation_repo }}" \
-            --repository "${{ inputs.production_repos }}" \
+            --repository "${{ inputs.production_repo }}" \
             --filter="${{ inputs.json_path }}" > "$ATTESTATION_FILE" 
           cat "$ATTESTATION_FILE"
           echo "created $ATTESTATION_FILE"
