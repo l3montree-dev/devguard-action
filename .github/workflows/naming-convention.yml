@@ -94,10 +94,10 @@ jobs:
         run: | 
           echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > $TMP_DATA
           opa eval \
-            --data $POLICY_REGO \
+            --data ${{ inputs.policy_url }} \
             --data $TMP_DATA \
             --input $ATTESTATION_FILE \
-            'data.documentationMerged.failure_msg[_]' \
+            'data.pr_title_ticket_gate.failure_msg[msg]' \
             --format raw \
             --fail-defined
 
