@@ -34,7 +34,6 @@ jobs:
       POLICY_REGO: /tmp/policy.rego
       DOCUMENTATION_REPO: /tmp/doc_repo.json
       MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-      ID : ${{ github.event.pull_request.id }}
       NODE_ID : ${{ github.event.pull_request.node_id }}
 
     steps:
@@ -70,6 +69,11 @@ jobs:
           curl -o policy.rego "${{ inputs.policy_url }}"
           cat policy.rego > "$POLICY_REGO"
 
+      - name : pr info 
+        run: |  
+          
+
+
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
         with:
@@ -77,7 +81,7 @@ jobs:
             
       - name: Evaluate Policy
         run: |
-          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
+          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "node_id": "${{ env.NODE_ID }}"}' > /tmp/doc_repo.json
           opa eval \
             --data "$POLICY_REGO" \
             --data /tmp/doc_repo.json \
