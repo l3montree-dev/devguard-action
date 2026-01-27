@@ -82,6 +82,7 @@ jobs:
           opa eval \
             --data $POLICY_REGO \
             --data $DOCUMENTATION_REPO \
+            --data /tmp/doc_repo.json \
             --input $ATTESTATION_FILE \
             'data.documentationMerged.failure_msg[_]' \
             --format  raw \

@@ -92,11 +92,11 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
-          echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > $TMP_DATA
+          echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > /tmp/doc_repo.json
           opa eval \
             --data ${{ inputs.policy_url }} \
-            --data $TMP_DATA \
-            --input $ATTESTATION_FILE \
+            --data /tmp/doc_repo.json \
+            --input "$ATTESTATION_FILE" \
             'data.pr_title_ticket_gate.failure_msg[msg]' \
             --format raw \
             --fail-defined
