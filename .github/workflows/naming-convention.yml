@@ -92,7 +92,7 @@ jobs:
       - name: Evaluate Policy
       
         run: | 
-          echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > #TMP_DATA
+          echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > $TMP_DATA
           opa eval \
             --data $POLICY_REGO \
             --data $TMP_DATA \
