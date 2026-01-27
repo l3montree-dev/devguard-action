@@ -73,20 +73,18 @@ jobs:
         uses: open-policy-agent/setup-opa@v2
         with:
           version: 1.10.1
-      
+            
       - name: Evaluate Policy
-      
-        run: | 
-
+        run: |
           echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "pull_request_title": "${{ env.PR_TITLE }}"}' > /tmp/doc_repo.json
           opa eval \
-            --data $POLICY_REGO \
-            --data $DOCUMENTATION_REPO \
+            --data "$POLICY_REGO" \
             --data /tmp/doc_repo.json \
-            --input $ATTESTATION_FILE \
+            --input "$ATTESTATION_FILE" \
             'data.documentationMerged.failure_msg[_]' \
-            --format  raw \
+            --format raw \
             --fail-defined
+
 
 
 
