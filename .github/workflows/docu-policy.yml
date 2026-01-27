@@ -35,6 +35,7 @@ jobs:
       DOCUMENTATION_REPO: /tmp/doc_repo.json
       MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
       ID : ${{ github.event.pull_request.id }}
+      NODE_ID : ${{ github.event.pull_request.node_id }}
 
     steps:
       - name: Checkout repo
