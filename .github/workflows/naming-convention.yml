@@ -1,0 +1,105 @@
+# Copyright 2026 larshermges
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+name: Naming Convention Check
+
+on:
+    workflow_call:
+      inputs:
+        repositories:
+          type: string
+          required: true
+          description: "org/repo,org/repo2,.... seperate repository with a comma" 
+        
+        ticket_repo:
+          type: string
+          required: true
+          description: "In whi"
+
+        policy_url:
+          type: string
+          required: true
+          description: "URL to the policy file via raw.githubusercontent.com"
+        json_path:
+          type: string
+          required: false
+          description: "Write down the JSONPath filter expression to filter the issues (optional)"
+
+ 
+jobs:
+  attestor: 
+    runs-on: ubuntu-latest
+    container: ghcr.io/l3montree-dev/compliance-as-code-witness:latest 
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      ATTESTATION_FILE: /tmp/attest.json
+      POLICY_REGO: /tmp/policy.rego
+      TMP_DATA: /tmp/doc_repo.json
+      DOCUMENTATION_REPO: /tmp/doc_repo.json
+      MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Env Sanity Check
+        run: echo $MERGE_COMMIT_SHA && echo $PR_TITLE
+
+      - name: Debug binary
+        run: |
+          ls -la /usr/local/bin
+          which compliance-as-code-witness || true
+          /usr/local/bin/compliance-as-code-witness --help || true
+
+      - name: Pull Request Check
+        run: |
+          /usr/local/bin/compliance-as-code-witness github issue \
+            --repository "${{ inputs.repositories }}" \
+            --filter="${{ inputs.json_path }}" > "$ATTESTATION_FILE" 
+          cat "$ATTESTATION_FILE"
+          echo "created $ATTESTATION_FILE"
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: attestation-${{ env.MERGE_COMMIT_SHA }}
+          path: ${{ env.ATTESTATION_FILE }}
+
+      - name: fetch policy file
+        run: |
+          curl -o policy.rego "${{ inputs.policy_url }}"
+          cat policy.rego > "$POLICY_REGO"
+
+      - name: Download OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: 1.10.1
+      
+      - name: Evaluate Policy
+      
+        run: | 
+          echo '{"pull_request_title": "${{ env.PR_TITLE }}", "ticket_repo": "${{ inputs.ticket_repo }}"}' > #TMP_DATA
+          opa eval \
+            --data $POLICY_REGO \
+            --data $TMP_DATA \
+            --input $ATTESTATION_FILE \
+            'data.documentationMerged.failure_msg[_]' \
+            --format raw \
+            --fail-defined
+
+
+
