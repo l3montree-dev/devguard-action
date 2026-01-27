@@ -39,7 +39,7 @@ on:
 
  
 jobs:
-  attestor: 
+  naming-convention: 
     runs-on: ubuntu-latest
     container: ghcr.io/l3montree-dev/compliance-as-code-witness:latest 
     env:
