@@ -89,6 +89,7 @@ jobs:
         uses: open-policy-agent/setup-opa@v2
         with:
           version: 1.10.1
+
       - name: id to title rego 
         run: |
           echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id-to-name.json
@@ -114,7 +115,7 @@ jobs:
       - name: Evaluate Policy
         run: |
           opa eval \
-            --data attestation-policies/pull_request_ticket_naming_convention.rego \
+            --data attestation-policies/policies/pull_request_ticket_naming_convention.rego \
             --data /tmp/doc_repo.json \
             --input "$ATTESTATION_FILE" \
             'data.pr_title_ticket_gate.failure_msg[msg]' \
