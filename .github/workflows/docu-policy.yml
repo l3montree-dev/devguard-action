@@ -29,11 +29,11 @@ jobs:
     container: ghcr.io/l3montree-dev/compliance-as-code-witness:latest 
     env:
       PR_NUMBER: ${{ github.event.number }}
-      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_TITLE: ""
       ATTESTATION_FILE: /tmp/attest.json
       POLICY_REGO: /tmp/policy.rego
       DOCUMENTATION_REPO: /tmp/doc_repo.json
-      MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      MERGE_COMMIT_SHA: ${{ github.event.pull_request.commit_id }}
       NODE_ID : ${{ github.event.pull_request.node_id }}
 
     steps:
@@ -61,29 +61,39 @@ jobs:
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: attestation-${{ env.MERGE_COMMIT_SHA }}
+          name: attestation- ${{ env.MERGE_COMMIT_SHA }}
           path: ${{ env.ATTESTATION_FILE }}
 
-      - name: fetch policy file
-        run: |
-          curl -o policy.rego "${{ inputs.policy_url }}"
-          cat policy.rego > "$POLICY_REGO"
-
-      - name : pr info 
-        run: |  
-          
-
+      - name: Checkout Attestation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: l3montree-dev/attestation-compliance-policies
+          ref: documentation_policy_check.rego   
+          path: attestation-policies
 
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
         with:
           version: 1.10.1
-            
+
+      - name: id to title rego 
+        run: |
+          echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id.json
+          opa eval \
+            --data attestation-policies//node_id_to_title.rego \
+            --data /tmp/id-to-name.json \
+            --input attest-15.json \
+            --format raw \
+            'data.id_to_name.main')" > $PR_TITLE
+            cat $PR_TITLE
+
+
+
       - name: Evaluate Policy
         run: |
           echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "node_id": "${{ env.NODE_ID }}"}' > /tmp/doc_repo.json
           opa eval \
-            --data "$POLICY_REGO" \
+            --data attestation-policies/policies/docu-policy.rego \
             --data /tmp/doc_repo.json \
             --input "$ATTESTATION_FILE" \
             'data.documentationMerged.failure_msg[_]' \
