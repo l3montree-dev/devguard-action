@@ -78,7 +78,7 @@ jobs:
 
       - name: id to title rego 
         run: |
-          echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id.json
+          echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id-to-name.json
           opa eval \
             --data attestation-policies/node_id_to_title.rego \
             --data /tmp/id-to-name.json \
