@@ -105,7 +105,7 @@ jobs:
       - name: Summarize Input
         run: |
           jq -n \
-            --arg pull_request_title "${{ env.PR_TITLE }}" \
+            --arg pull_request_title "$(cat "$PR_TITLE")" \
             --arg ticket_repo "${{ inputs.ticket_repo }}" \
             '{pull_request_title:$pull_request_title, ticket_repo:$ticket_repo}' \
             > /tmp/doc_repo.json
