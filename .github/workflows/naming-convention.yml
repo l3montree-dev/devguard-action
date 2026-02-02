@@ -28,10 +28,6 @@ on:
           required: true
           description: "In whi"
 
-        policy_url:
-          type: string
-          required: true
-          description: "URL to the policy file via raw.githubusercontent.com"
         json_path:
           type: string
           required: false
