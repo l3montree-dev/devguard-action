@@ -84,7 +84,7 @@ jobs:
             --data /tmp/id-to-name.json \
             --input attest-15.json \
             --format raw \
-            'data.id_to_name.main')" > $PR_TITLE
+            'data.id_to_name.main' > $PR_TITLE
             cat $PR_TITLE
 
 
