@@ -88,7 +88,7 @@ jobs:
           opa eval \
             --data attestation-policies/policies/node_id_to_title.rego \
             --data /tmp/id-to-name.json \
-            --input attest-15.json \
+            --input "$ATTESTATION_FILE" \
             --format raw \
             'data.id_to_name.main' > $PR_TITLE
             cat $PR_TITLE
