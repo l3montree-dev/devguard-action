@@ -71,6 +71,12 @@ jobs:
           ref: documentation_policy_check.rego   
           path: attestation-policies
 
+      - name: Debug checkout
+        run: |
+          pwd
+          ls -la
+          ls -la attestation-policies
+          
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
         with:
