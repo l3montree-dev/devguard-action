@@ -36,10 +36,18 @@ jobs:
       MERGE_COMMIT_SHA: ${{ github.sha }}
       NODE_ID : ${{ github.event.pull_request.node_id }}
 
+
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          jq --version
+          
       - name: Env Sanity Check
         run: echo $MERGE_COMMIT_SHA
 
