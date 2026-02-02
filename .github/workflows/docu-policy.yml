@@ -13,10 +13,6 @@ on:
           required: true
           description: "Write down every repository that has to wait for documentation to be merged first."
 
-        policy_url:
-          type: string
-          required: true
-          description: "URL to the policy file via raw.githubusercontent.com"
         json_path:
           type: string
           required: false
