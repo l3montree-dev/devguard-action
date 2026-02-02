@@ -85,6 +85,11 @@ jobs:
           ref: documentation_policy_check.rego   
           path: attestation-policies
 
+      - name: Download OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: 1.10.1
+          
       - name: id to title rego 
         run: |
           echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id-to-name.json
@@ -97,10 +102,6 @@ jobs:
             cat $PR_TITLE
 
 
-      - name: Download OPA
-        uses: open-policy-agent/setup-opa@v2
-        with:
-          version: 1.10.1
 
       - name: Summarize Input
         run: |
