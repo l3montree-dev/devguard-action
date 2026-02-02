@@ -47,9 +47,8 @@ jobs:
       PR_TITLE: ${{ github.event.pull_request.title }}
       ATTESTATION_FILE: /tmp/attest.json
       POLICY_REGO: /tmp/policy.rego
-      TMP_DATA: /tmp/doc_repo.json
-      DOCUMENTATION_REPO: /tmp/doc_repo.json
-      MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      MERGE_COMMIT_SHA: ${{ github.sha }}
+      NODE_ID : ${{ github.event.pull_request.node_id }}
 
 
     steps:
@@ -79,26 +78,46 @@ jobs:
           name: attestation-${{ env.MERGE_COMMIT_SHA }}
           path: ${{ env.ATTESTATION_FILE }}
 
-      - name: fetch policy file
+      - name: Checkout Attestation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: l3montree-dev/attestation-compliance-policies
+          ref: documentation_policy_check.rego   
+          path: attestation-policies
+
+      - name: id to title rego 
         run: |
-          curl -o policy.rego "${{ inputs.policy_url }}"
-          cat policy.rego > "$POLICY_REGO"
+          echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id-to-name.json
+          opa eval \
+            --data attestation-policies/policies/node_id_to_title.rego \
+            --data /tmp/id-to-name.json \
+            --input "$ATTESTATION_FILE" \
+            --format raw \
+            'data.id_to_name.main' > $PR_TITLE
+            cat $PR_TITLE
+
 
       - name: Download OPA
         uses: open-policy-agent/setup-opa@v2
         with:
           version: 1.10.1
-      
+
+      - name: Summarize Input
+        run: |
+          jq -n \
+            --arg pull_request_title "${{ env.PR_TITLE }}" \
+            --arg ticket_repo "${{ inputs.ticket_repo }}" \
+            '{pull_request_title:$pull_request_title, ticket_repo:$ticket_repo}' \
+            > "$TMP_DATA"
+
+          cat "$TMP_DATA"
+
       - name: Evaluate Policy
-      
-        run: | 
-          echo "{\"pull_request_title\": \"${PR_TITLE}\", \"ticket_repo\": \"${{ inputs.ticket_repo }}\"}" > "$TMP_DATA"
+        run: |
           opa eval \
-            --data "$POLICY_REGO" \
+            --data "attestation-policies/pull_request_ticket_naming_convention.rego" \
             --data "$TMP_DATA" \
             --input "$ATTESTATION_FILE" \
             'data.pr_title_ticket_gate.failure_msg[msg]' \
             --format raw \
             --fail-defined
-
-
