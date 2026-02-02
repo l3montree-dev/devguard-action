@@ -97,7 +97,7 @@ jobs:
 
       - name: Evaluate Policy
         run: |
-          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "node_id": "${{ env.NODE_ID }}"}' > /tmp/doc_repo.json
+          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "pull_request_title": "$PR_TITLE"}' > /tmp/doc_repo.json
           opa eval \
             --data attestation-policies/policies/documentation_policy_check.rego \
             --data /tmp/doc_repo.json \
