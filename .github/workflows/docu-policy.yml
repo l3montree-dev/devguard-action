@@ -95,9 +95,19 @@ jobs:
 
 
 
-      - name: Evaluate Policy
+      - name: Summarize Input
         run: |
-          echo '{"documentation_repo": "${{ inputs.documentation_repo }}", "production_repo": "${{ inputs.production_repo }}", "pull_request_title": "$PR_TITLE"}' > /tmp/doc_repo.json
+          jq -n \
+            --arg documentation_repo "${{ inputs.documentation_repo }}" \
+            --arg production_repo "${{ inputs.production_repo }}" \
+            --arg pull_request_title "$(cat "$PR_TITLE")" \
+            '{documentation_repo:$documentation_repo, production_repo:$production_repo, pull_request_title:$pull_request_title}' \
+            > /tmp/doc_repo.json
+
+          cat /tmp/doc_repo.json
+
+      - name: Documentation Policy Check
+        run: |
           opa eval \
             --data attestation-policies/policies/documentation_policy_check.rego \
             --data /tmp/doc_repo.json \
@@ -105,6 +115,7 @@ jobs:
             'data.documentationMerged.failure_msg[_]' \
             --format raw \
             --fail-defined
+
 
 
 
