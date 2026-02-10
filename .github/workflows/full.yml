@@ -130,7 +130,7 @@ jobs:
       path: ${{ inputs.path }}
       fail-on-risk: ${{ inputs.fail-on-risk }}
       fail-on-cvss: ${{ inputs.fail-on-cvss }}
-      web-ui: ${{ inputs.web-ui }}#
+      web-ui: ${{ inputs.web-ui }}
 #      artifact-name:   // WE ARE NOT!! PROVIDING THE ARTIFACT NAME RIGHT HERE - OTHERWISE CONTAINER AND SCA WOULD DO THE SAME ARTIFACT
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
