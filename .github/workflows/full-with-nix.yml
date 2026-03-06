@@ -1,0 +1,158 @@
+name: Full Nix Image Pipeline
+
+
+on:
+  workflow_call:
+    inputs:
+      nix-target:
+        description: 'Nix flake build target (e.g. devguardOCI)'
+        required: true
+        type: string
+      image-name:
+        description: 'Full OCI image name without tag (e.g. ghcr.io/l3montree-dev/devguard/scanner)'
+        required: true
+        type: string
+      artifact-name-suffix:
+        description: 'Suffix appended to artifact names to avoid conflicts when building multiple images in the same workflow'
+        required: false
+        type: string
+        default: ''
+      asset-name:
+        description: 'DevGuard asset name for supply chain tracking'
+        required: true
+        type: string
+      api-url:
+        description: 'DevGuard API URL'
+        required: false
+        type: string
+        default: 'https://api.devguard.org'
+      web-ui:
+        description: 'DevGuard web UI URL'
+        required: false
+        type: string
+        default: 'https://app.devguard.org'
+      fail-on-risk:
+        description: 'Fail if risk level reaches this threshold (none|low|medium|high|critical)'
+        required: false
+        type: string
+        default: 'critical'
+      fail-on-cvss:
+        description: 'Fail if CVSS score reaches this threshold (none|low|medium|high|critical)'
+        required: false
+        type: string
+        default: 'critical'
+      should-deploy:
+        description: 'Whether to push the image to the container registry'
+        required: false
+        type: boolean
+        default: true
+      path:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace"
+      continue-on-open-code-risk:
+        type: boolean
+        required: false
+        default: true
+    secrets:
+      devguard-token:
+        required: true
+    outputs:
+      image-tag:
+        description: 'Full image tag of the built image'
+        value: ${{ jobs.build-image.outputs.image-tag }}
+      image-digest:
+        description: 'Digest of the built image'
+        value: ${{ jobs.build-image.outputs.image-digest }}
+      artifact-purl:
+        description: 'Package URL (PURL) of the built artifact'
+        value: ${{ jobs.build-image.outputs.artifact-purl }}
+
+jobs:
+  call-code-scanning:
+    uses: l3montree-dev/devguard-action/.github/workflows/code-scanning.yml@main
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+      web-ui: ${{ inputs.web-ui }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  build-image:
+    uses: l3montree-dev/devguard-action/.github/workflows/build-nix-image.yml@main
+    permissions:
+      contents: read
+    with:
+      nix-target: ${{ inputs.nix-target }}
+      image-name: ${{ inputs.image-name }}
+      artifact-name-suffix: ${{ inputs.artifact-name-suffix }}
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  container-scanning:
+    uses: l3montree-dev/devguard-action/.github/workflows/container-scanning.yml@main
+    permissions:
+      contents: read
+      security-events: write
+    needs: [build-image]
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-image.outputs.artifact-purl }}
+      web-ui: ${{ inputs.web-ui }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  deploy:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-image, container-scanning, call-code-scanning]
+    uses: l3montree-dev/devguard-action/.github/workflows/deploy.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  sign:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-image, container-scanning, call-code-scanning]
+    uses: l3montree-dev/devguard-action/.github/workflows/sign.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-image.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  attest:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-image, container-scanning, call-code-scanning]
+    uses: l3montree-dev/devguard-action/.github/workflows/attest.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-image.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}

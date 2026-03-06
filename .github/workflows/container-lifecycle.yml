@@ -1,9 +1,10 @@
-name: Full DevGuard Scan
+name: Container Lifecycle
+
 on:
   workflow_call:
     inputs:
       asset-name:
-        description: 'Name of the asset to be scanned'
+        description: 'Name of the asset'
         type: string
         required: true
 
@@ -12,17 +13,22 @@ on:
         required: false
         default: "https://api.devguard.org"
 
-      path:
-        description: 'Path to the source code to be scanned'
-        type: string
-        required: false
-        default: "/github/workspace"
-      
       web-ui:
         type: string
         required: false
         default: "https://app.devguard.org"
         description: "The URL of the DevGuard Web UI. This is used to link the results in the DevGuard Web UI."
+
+      image-destination-path:
+        description: 'Path to the oci image to be scanned.'
+        type: string
+        required: false
+        default: "image.tar"
+
+      image:
+        description: 'OCI image tag'
+        type: string
+        required: false
 
       disable-artifact-registry-as-image-store:
         required: false
@@ -30,29 +36,23 @@ on:
         type: boolean
         description: "If the artifact size is too big for your github usage quota, set this to true. This will push the image directly to the registry instead of uploading it as artifact."
 
-      image-destination-path:
-        description: 'Path to the oci image to be scanned. Only necessary if deploy reusable workflow is not used and you would like to do further processing of the builded image.tar'
-        type: string
-        required: false
-        default: "image.tar"
-
-      image:
-        description: 'oci image tag'
-        type: string
-        required: false
-
-      should-deploy:
-        description: 'Should the deploy job run - publishing the image to the desired Container Registry'
-        type: boolean
-        required: false
-        default: true
-
       image-suffix:
-        # Suffix for the image name
-        description: 'Suffix for the image name. You probably need this if you are building multiple images. For example building a <abc>/scanner image and a <abc>/web image.'
+        description: 'Suffix for the image name. You probably need this if you are building multiple images.'
         type: string
         required: false
         default: ''
+
+      artifact-name:
+        type: string
+        required: false
+        default: ''
+        description: "The name of the artifact you are building. Leave empty if building a single artifact."
+
+      should-deploy:
+        description: 'Should the deploy job run'
+        type: boolean
+        required: false
+        default: true
 
       fail-on-risk:
         description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
@@ -64,23 +64,12 @@ on:
         type: string
         required: false
 
-      continue-on-open-code-risk:
-        type: boolean
-        required: false
-        default: true
-
-      artifact-name:
-        type: string
-        required: false
-        default: ''
-        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
-
     secrets:
       devguard-token:
         description: 'DevGuard API token'
         required: true
       build-args:
-        description: 'Build arguments. Useful to overwrite context and dockerfile. Maybe even add additional build args.'
+        description: 'Build arguments. Useful to overwrite context and dockerfile.'
         required: false
 
 
@@ -89,19 +78,6 @@ permissions:
   packages: write
 
 jobs:
-  call-code-scanning:
-    uses: ./.github/workflows/code-scanning.yml
-    with:
-      asset-name: ${{ inputs.asset-name }}
-      api-url: ${{ inputs.api-url }}
-      path: ${{ inputs.path }}
-      web-ui: ${{ inputs.web-ui }}
-      fail-on-risk: ${{ inputs.fail-on-risk }}
-      fail-on-cvss: ${{ inputs.fail-on-cvss }}
-      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
-    secrets:
-      devguard-token: ${{ secrets.devguard-token }}
-
   call-build-image:
     uses: ./.github/workflows/build-image.yml
     with:
@@ -133,10 +109,7 @@ jobs:
       devguard-token: ${{ secrets.devguard-token }}
 
   call-deploy:
-    needs:
-    - call-build-image
-    - call-container-scanning
-    - call-code-scanning
+    needs: [call-build-image, call-container-scanning]
     uses: ./.github/workflows/deploy.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
@@ -148,11 +121,7 @@ jobs:
       devguard-token: ${{ secrets.devguard-token }}
 
   call-sign:
-    needs:
-    - call-build-image
-    - call-container-scanning
-    - call-code-scanning
-    - call-deploy
+    needs: [call-build-image, call-container-scanning, call-deploy]
     uses: ./.github/workflows/sign.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}
@@ -164,11 +133,7 @@ jobs:
       devguard-token: ${{ secrets.devguard-token }}
 
   call-attest:
-    needs:
-    - call-build-image
-    - call-container-scanning
-    - call-code-scanning
-    - call-deploy
+    needs: [call-build-image, call-container-scanning, call-deploy]
     uses: ./.github/workflows/attest.yml
     with:
       should-deploy: ${{ inputs.should-deploy }}

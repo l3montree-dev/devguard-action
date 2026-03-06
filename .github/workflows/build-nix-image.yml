@@ -1,0 +1,147 @@
+name: Build Nix OCI Image
+
+on:
+  workflow_call:
+    inputs:
+      nix-target:
+        description: 'Nix flake build target (e.g. devguardOCI)'
+        required: true
+        type: string
+      image-name:
+        description: 'Full OCI image name without tag (e.g. ghcr.io/l3montree-dev/devguard/scanner)'
+        required: true
+        type: string
+      artifact-name-suffix:
+        description: 'Suffix appended to artifact names to avoid conflicts when building multiple images in the same workflow'
+        required: false
+        type: string
+        default: ''
+      asset-name:
+        description: 'DevGuard asset name for supply chain tracking'
+        required: true
+        type: string
+      api-url:
+        description: 'DevGuard API URL'
+        required: false
+        type: string
+        default: 'https://api.devguard.org'
+    secrets:
+      devguard-token:
+        required: false
+    outputs:
+      image-tag:
+        description: 'Full image tag of the built image'
+        value: ${{ jobs.build.outputs.image-tag }}
+      image-digest:
+        description: 'Digest of the built image'
+        value: ${{ jobs.build.outputs.image-digest }}
+      artifact-purl:
+        description: 'Package URL (PURL) of the built artifact'
+        value: ${{ jobs.build.outputs.artifact-purl }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.set-image-tag.outputs.image_tag }}
+      image-digest: ${{ steps.get-digest.outputs.digest }}
+      artifact-purl: ${{ steps.set-purl.outputs.purl }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5 - https://github.com/actions/checkout/releases/tag/v5.0.0
+        with:
+          fetch-depth: 0 # needed for flake.nix to resolve self.shortRev
+          persist-credentials: false
+
+      - name: In-Toto Provenance record start
+        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0
+        with:
+          args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        continue-on-error: true
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - uses: imjasonh/setup-crane@v0.1
+
+      - name: Build OCI image with Nix
+        run: nix build .#${{ inputs.nix-target }}
+
+      - name: Prepare image.tar
+        run: gunzip -c "$(readlink -f result)" > image.tar
+
+      - name: Get image digest
+        id: get-digest
+        run: |
+          crane digest --tarball=image.tar > image-digest.txt
+          echo "digest=$(cat image-digest.txt)" >> $GITHUB_OUTPUT
+
+      - name: Upload oci-image artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: oci-image${{ inputs.artifact-name-suffix }}
+          path: image.tar
+
+      - name: Set image tag
+        id: set-image-tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            IMAGE_TAG="${{ inputs.image-name }}:${GITHUB_REF#refs/tags/}"
+          else
+            branch=${GITHUB_REF##*/}
+            sha=${GITHUB_SHA::8}
+            ts=$(date +%s)
+            IMAGE_TAG="${{ inputs.image-name }}:${branch}-${sha}-${ts}"
+          fi
+          IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
+          echo "$IMAGE_TAG" > image-tag.txt
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Upload image-tag artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: image-tag${{ inputs.artifact-name-suffix }}
+          path: image-tag.txt
+
+      - name: Upload image-digest artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: image-digest${{ inputs.artifact-name-suffix }}
+          path: image-digest.txt
+
+      - name: Set artifact PURL
+        id: set-purl
+        run: |
+          REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
+          NAME=${REGISTRY_AND_IMAGE##*/}
+          PURL="pkg:oci/$NAME?repository_url=$REGISTRY_AND_IMAGE"
+          echo "$PURL" > artifact-purl.txt
+          SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
+          echo "$SAFE_PURL" > artifact-purl-safe.txt
+          echo "purl=$PURL" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact-purl artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: artifact-purl${{ inputs.artifact-name-suffix }}
+          path: artifact-purl.txt
+
+      - name: Upload artifact-purl-safe artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: artifact-purl-safe${{ inputs.artifact-name-suffix }}
+          path: artifact-purl-safe.txt
+
+      - name: In-Toto Provenance record stop
+        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0
+        with:
+          args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
+        continue-on-error: true
+
+      - name: Upload SLSA Provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: build${{ inputs.artifact-name-suffix }}.provenance.json
+          path: build.provenance.json

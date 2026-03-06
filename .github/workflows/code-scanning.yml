@@ -1,0 +1,93 @@
+name: Code Scanning
+
+on:
+  workflow_call:
+    inputs:
+      asset-name:
+        description: 'Name of the asset to be scanned'
+        type: string
+        required: true
+
+      api-url:
+        type: string
+        required: false
+        default: "https://api.devguard.org"
+
+      path:
+        description: 'Path to the source code to be scanned'
+        type: string
+        required: false
+        default: "/github/workspace"
+
+      web-ui:
+        type: string
+        required: false
+        default: "https://app.devguard.org"
+        description: "The URL of the DevGuard Web UI. This is used to link the results in the DevGuard Web UI."
+
+      fail-on-risk:
+        description: 'Fail the job if a risk is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
+        required: false
+
+      fail-on-cvss:
+        description: 'Fail the job if a CVSS score is higher than the configured threshold, e.g. critical, high, medium, low'
+        type: string
+        required: false
+
+      continue-on-open-code-risk:
+        type: boolean
+        required: false
+        default: true
+
+    secrets:
+      devguard-token:
+        description: 'DevGuard API token'
+        required: true
+
+
+jobs:
+  call-secret-scanning:
+    uses: ./.github/workflows/secret-scanning.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+      web-ui: ${{ inputs.web-ui }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  call-sast:
+    uses: ./.github/workflows/static-application-security-testing.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+      web-ui: ${{ inputs.web-ui }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  call-iac:
+    uses: ./.github/workflows/iac.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+      web-ui: ${{ inputs.web-ui }}
+      continue-on-open-code-risk: ${{ inputs.continue-on-open-code-risk }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  call-software-composition-analysis:
+    uses: ./.github/workflows/software-composition-analysis.yml
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      path: ${{ inputs.path }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
+      web-ui: ${{ inputs.web-ui }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
