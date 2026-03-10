@@ -164,6 +164,7 @@ jobs:
               devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
               devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+            fi
           "
       env:
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}  
