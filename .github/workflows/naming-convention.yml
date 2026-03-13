@@ -1,0 +1,119 @@
+# Copyright 2026 larshermges
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+name: Naming Convention Check
+
+on:
+    workflow_call:
+      inputs:
+        repositories:
+          type: string
+          required: true
+          description: "org/repo,org/repo2,.... seperate repository with a comma" 
+        
+        ticket_repo:
+          type: string
+          required: true
+          description: "Write down the Repository where the ticket are created"
+
+        json_path:
+          type: string
+          required: false
+          description: "Write down the JSONPath filter expression to filter the issues (optional)"
+
+ 
+jobs:
+  naming-convention: 
+    runs-on: ubuntu-latest
+    container: ghcr.io/l3montree-dev/compliance-as-code-witness:latest 
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+      PR_TITLE: /tmp/pr_title
+      ATTESTATION_FILE: /tmp/attest.json
+      POLICY_REGO: /tmp/policy.rego
+      MERGE_COMMIT_SHA: ${{ github.sha }}
+      NODE_ID : ${{ github.event.pull_request.node_id }}
+
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Env Sanity Check
+        run: echo $MERGE_COMMIT_SHA && echo $PR_TITLE
+
+      - name: Debug binary
+        run: |
+          ls -la /usr/local/bin
+          which compliance-as-code-witness || true
+          /usr/local/bin/compliance-as-code-witness --help || true
+
+      - name: Pull Request Check
+        run: |
+          /usr/local/bin/compliance-as-code-witness github issue \
+            --repository "${{ inputs.repositories }}" \
+            --filter="${{ inputs.json_path }}" > "$ATTESTATION_FILE" 
+          cat "$ATTESTATION_FILE"
+          echo "created $ATTESTATION_FILE"
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: attestation-${{ env.MERGE_COMMIT_SHA }}
+          path: ${{ env.ATTESTATION_FILE }}
+
+      - name: Checkout Attestation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: l3montree-dev/attestation-compliance-policies
+          ref: documentation_policy_check.rego   
+          path: attestation-policies
+
+      - name: Download OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: 1.10.1
+
+      - name: id to title rego 
+        run: |
+          echo '{"node_id": "${{ env.NODE_ID }}"}' > /tmp/id-to-name.json
+          opa eval \
+            --data attestation-policies/policies/node_id_to_title.rego \
+            --data /tmp/id-to-name.json \
+            --input "$ATTESTATION_FILE" \
+            --format raw \
+            'data.id_to_name.main' > $PR_TITLE
+            cat $PR_TITLE
+
+
+      - name: Summarize Input
+        run: |
+          jq -n \
+            --arg pull_request_title "$(cat "$PR_TITLE")" \
+            --arg ticket_repo "${{ inputs.ticket_repo }}" \
+            '{pull_request_title:$pull_request_title, ticket_repo:$ticket_repo}' \
+            > /tmp/doc_repo.json
+
+          cat /tmp/doc_repo.json
+
+      - name: Evaluate Policy
+        run: |
+          opa eval \
+            --data attestation-policies/policies/pull_request_ticket_naming_convention.rego \
+            --data /tmp/doc_repo.json \
+            --input "$ATTESTATION_FILE" \
+            'data.pr_title_ticket_gate.failure_msg[msg]' \
+            --format raw \
+            --fail-defined
