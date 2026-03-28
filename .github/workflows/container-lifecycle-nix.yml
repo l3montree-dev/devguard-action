@@ -52,9 +52,36 @@ on:
         required: false
         type: string
 
+      nix-cache-substituter:
+        description: 'Nix binary cache substituter URL (e.g. https://nix.garage.l3montree.cloud)'
+        required: false
+        type: string
+      nix-cache-public-key:
+        description: 'Trusted public key for the Nix binary cache'
+        required: false
+        type: string
+      nix-cache-s3-endpoint:
+        description: 'S3 API endpoint for pushing to the cache. Leave empty to skip pushing.'
+        required: false
+        type: string
+      nix-cache-s3-bucket:
+        description: 'S3 bucket name for the cache'
+        required: false
+        type: string
+      nix-cache-region:
+        description: 'S3 region for the cache bucket'
+        required: false
+        type: string
+
     secrets:
       devguard-token:
         required: true
+      nix-cache-secret-key:
+        required: false
+      nix-cache-aws-access-key-id:
+        required: false
+      nix-cache-aws-secret-access-key:
+        required: false
 
     outputs:
       image-tag:
@@ -83,8 +110,16 @@ jobs:
       artifact-name-suffix: ${{ inputs.artifact-name-suffix }}
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
+      nix-cache-substituter: ${{ inputs.nix-cache-substituter }}
+      nix-cache-public-key: ${{ inputs.nix-cache-public-key }}
+      nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
+      nix-cache-s3-bucket: ${{ inputs.nix-cache-s3-bucket }}
+      nix-cache-region: ${{ inputs.nix-cache-region }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
+      nix-cache-secret-key: ${{ secrets.nix-cache-secret-key }}
+      nix-cache-aws-access-key-id: ${{ secrets.nix-cache-aws-access-key-id }}
+      nix-cache-aws-secret-access-key: ${{ secrets.nix-cache-aws-secret-access-key }}
 
   container-scanning:
     needs: build-image

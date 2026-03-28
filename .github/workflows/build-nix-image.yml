@@ -25,8 +25,39 @@ on:
         required: false
         type: string
         default: 'https://api.devguard.org'
+      nix-cache-substituter:
+        description: 'Nix binary cache substituter URL (e.g. https://nix.garage.l3montree.cloud)'
+        required: false
+        type: string
+        default: ''
+      nix-cache-public-key:
+        description: 'Trusted public key for the Nix binary cache'
+        required: false
+        type: string
+        default: ''
+      nix-cache-s3-endpoint:
+        description: 'S3 API endpoint for pushing to the cache (e.g. s3.garage.l3montree.cloud)'
+        required: false
+        type: string
+        default: ''
+      nix-cache-s3-bucket:
+        description: 'S3 bucket name for pushing to the cache'
+        required: false
+        type: string
+        default: 'nix'
+      nix-cache-region:
+        description: 'S3 region for the cache bucket'
+        required: false
+        type: string
+        default: 'garage'
     secrets:
       devguard-token:
+        required: false
+      nix-cache-secret-key:
+        required: false
+      nix-cache-aws-access-key-id:
+        required: false
+      nix-cache-aws-secret-access-key:
         required: false
     outputs:
       image-tag:
@@ -62,11 +93,32 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+            ${{ inputs.nix-cache-substituter != '' && format('substituters = https://cache.nixos.org {0}', inputs.nix-cache-substituter) || '' }}
+            ${{ inputs.nix-cache-public-key != '' && format('trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= {0}', inputs.nix-cache-public-key) || '' }}
 
       - uses: imjasonh/setup-crane@v0.1
 
+      - name: Write Nix cache secret key
+        if: ${{ secrets.nix-cache-secret-key != '' }}
+        run: |
+          echo "${{ secrets.nix-cache-secret-key }}" > /tmp/nix-cache-priv-key.pem
+
       - name: Build OCI image with Nix
         run: nix build .#${{ inputs.nix-target }}
+
+      - name: Push build results to Nix cache
+        if: ${{ inputs.nix-cache-s3-endpoint != '' && secrets.nix-cache-aws-access-key-id != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.nix-cache-aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.nix-cache-aws-secret-access-key }}
+        run: |
+          mkdir -p ~/.aws
+          echo "[profile nix-cache]" >> ~/.aws/config
+          echo "s3.addressing_style = path" >> ~/.aws/config
+          nix copy $(nix-store -qR $(nix-store -r $(nix eval --raw .#${{ inputs.nix-target }}.drvPath 2>/dev/null || readlink result))) \
+            --to 's3://${{ inputs.nix-cache-s3-bucket }}?endpoint=${{ inputs.nix-cache-s3-endpoint }}&region=${{ inputs.nix-cache-region }}&scheme=https&profile=nix-cache&secret-key=/tmp/nix-cache-priv-key.pem' \
+            || nix copy $(readlink result) \
+            --to 's3://${{ inputs.nix-cache-s3-bucket }}?endpoint=${{ inputs.nix-cache-s3-endpoint }}&region=${{ inputs.nix-cache-region }}&scheme=https&profile=nix-cache&secret-key=/tmp/nix-cache-priv-key.pem'
 
       - name: Prepare image.tar
         run: gunzip -c "$(readlink -f result)" > image.tar
