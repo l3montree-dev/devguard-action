@@ -1,0 +1,292 @@
+name: Full Nix Multi-Arch Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      nix-target-amd64:
+        description: 'Nix flake build target for amd64 (e.g. devguard-0-amd64)'
+        required: true
+        type: string
+      nix-target-arm64:
+        description: 'Nix flake build target for arm64 (e.g. devguard-0-arm64)'
+        required: true
+        type: string
+      image-name:
+        description: 'Full OCI image name without tag (e.g. ghcr.io/l3montree-dev/devguard)'
+        required: true
+        type: string
+      upstream-version:
+        description: 'Upstream version segment used by generate-tag (matches the nix package version, e.g. 0)'
+        required: false
+        type: string
+        default: '0'
+      artifact-name-suffix:
+        description: 'Suffix appended to artifact names to avoid conflicts when building multiple images in the same workflow'
+        required: false
+        type: string
+        default: ''
+      asset-name:
+        description: 'DevGuard asset name for supply chain tracking'
+        required: true
+        type: string
+      api-url:
+        description: 'DevGuard API URL'
+        required: false
+        type: string
+        default: 'https://api.devguard.org'
+      web-ui:
+        description: 'DevGuard web UI URL'
+        required: false
+        type: string
+        default: 'https://app.devguard.org'
+      fail-on-risk:
+        description: 'Fail if risk level reaches this threshold (none|low|medium|high|critical)'
+        required: false
+        type: string
+        default: 'critical'
+      fail-on-cvss:
+        description: 'Fail if CVSS score reaches this threshold (none|low|medium|high|critical)'
+        required: false
+        type: string
+        default: 'critical'
+      should-deploy:
+        description: 'Whether to push the images and manifest to the container registry'
+        required: false
+        type: boolean
+        default: true
+      nix-cache-substituter:
+        description: 'Nix binary cache substituter URL'
+        required: false
+        type: string
+        default: ''
+      nix-cache-public-key:
+        description: 'Trusted public key for the Nix binary cache'
+        required: false
+        type: string
+        default: ''
+      nix-cache-s3-endpoint:
+        description: 'S3 API endpoint for pushing to the Nix cache'
+        required: false
+        type: string
+        default: ''
+      nix-cache-s3-bucket:
+        description: 'S3 bucket name for the Nix cache'
+        required: false
+        type: string
+        default: 'nix'
+      nix-cache-region:
+        description: 'S3 region for the Nix cache bucket'
+        required: false
+        type: string
+        default: 'garage'
+    secrets:
+      devguard-token:
+        required: true
+      nix-cache-secret-key:
+        required: false
+      nix-cache-aws-access-key-id:
+        required: false
+      nix-cache-aws-secret-access-key:
+        required: false
+    outputs:
+      manifest-tag:
+        description: 'Full image tag of the multi-arch manifest'
+        value: ${{ jobs.create-manifest.outputs.manifest-tag }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-amd64:
+    uses: l3montree-dev/devguard-action/.github/workflows/build-nix-image.yml@main
+    permissions:
+      contents: read
+    with:
+      nix-target: ${{ inputs.nix-target-amd64 }}
+      image-name: ${{ inputs.image-name }}
+      artifact-name-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      arch: amd64
+      upstream-version: ${{ inputs.upstream-version }}
+      nix-cache-substituter: ${{ inputs.nix-cache-substituter }}
+      nix-cache-public-key: ${{ inputs.nix-cache-public-key }}
+      nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
+      nix-cache-s3-bucket: ${{ inputs.nix-cache-s3-bucket }}
+      nix-cache-region: ${{ inputs.nix-cache-region }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+      nix-cache-secret-key: ${{ secrets.nix-cache-secret-key }}
+      nix-cache-aws-access-key-id: ${{ secrets.nix-cache-aws-access-key-id }}
+      nix-cache-aws-secret-access-key: ${{ secrets.nix-cache-aws-secret-access-key }}
+
+  build-arm64:
+    uses: l3montree-dev/devguard-action/.github/workflows/build-nix-image.yml@main
+    permissions:
+      contents: read
+    with:
+      nix-target: ${{ inputs.nix-target-arm64 }}
+      image-name: ${{ inputs.image-name }}
+      artifact-name-suffix: ${{ inputs.artifact-name-suffix }}-arm64
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      arch: arm64
+      upstream-version: ${{ inputs.upstream-version }}
+      nix-cache-substituter: ${{ inputs.nix-cache-substituter }}
+      nix-cache-public-key: ${{ inputs.nix-cache-public-key }}
+      nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
+      nix-cache-s3-bucket: ${{ inputs.nix-cache-s3-bucket }}
+      nix-cache-region: ${{ inputs.nix-cache-region }}
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+      nix-cache-secret-key: ${{ secrets.nix-cache-secret-key }}
+      nix-cache-aws-access-key-id: ${{ secrets.nix-cache-aws-access-key-id }}
+      nix-cache-aws-secret-access-key: ${{ secrets.nix-cache-aws-secret-access-key }}
+
+  container-scanning-amd64:
+    needs: build-amd64
+    uses: l3montree-dev/devguard-action/.github/workflows/container-scanning.yml@main
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-amd64.outputs.artifact-purl }}
+      web-ui: ${{ inputs.web-ui }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  container-scanning-arm64:
+    needs: build-arm64
+    uses: l3montree-dev/devguard-action/.github/workflows/container-scanning.yml@main
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-arm64.outputs.artifact-purl }}
+      web-ui: ${{ inputs.web-ui }}
+      fail-on-cvss: ${{ inputs.fail-on-cvss }}
+      fail-on-risk: ${{ inputs.fail-on-risk }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-arm64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  deploy-amd64:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-amd64, container-scanning-amd64]
+    uses: l3montree-dev/devguard-action/.github/workflows/deploy.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  deploy-arm64:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-arm64, container-scanning-arm64]
+    uses: l3montree-dev/devguard-action/.github/workflows/deploy.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-arm64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  create-manifest:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-amd64, build-arm64, deploy-amd64, deploy-arm64]
+    runs-on: ubuntu-latest
+    outputs:
+      manifest-tag: ${{ steps.manifest.outputs.manifest-tag }}
+    steps:
+      - uses: imjasonh/setup-crane@v0.1
+
+      - name: Log in to ghcr.io
+        run: crane auth login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download amd64 image-tag artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tag${{ inputs.artifact-name-suffix }}-amd64
+          path: amd64
+
+      - name: Download arm64 image-tag artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tag${{ inputs.artifact-name-suffix }}-arm64
+          path: arm64
+
+      - name: Create and push multi-arch manifest
+        id: manifest
+        run: |
+          AMD64_TAG=$(cat amd64/image-tag.txt)
+          ARM64_TAG=$(cat arm64/image-tag.txt)
+
+          # Derive manifest tag by stripping the -amd64 arch suffix
+          MANIFEST_TAG="${AMD64_TAG%-amd64}"
+          MANIFEST_TAG_LATEST="${{ inputs.image-name }}:${{ github.ref_name }}-latest"
+          MANIFEST_TAG_LATEST=$(echo "$MANIFEST_TAG_LATEST" | tr '[:upper:]' '[:lower:]')
+
+          crane index append \
+            --tag "$MANIFEST_TAG" \
+            -m "$AMD64_TAG" \
+            -m "$ARM64_TAG"
+
+          crane index append \
+            --tag "$MANIFEST_TAG_LATEST" \
+            -m "$AMD64_TAG" \
+            -m "$ARM64_TAG"
+
+          echo "manifest-tag=$MANIFEST_TAG" >> $GITHUB_OUTPUT
+          echo "MANIFEST_TAG=$MANIFEST_TAG" >> $GITHUB_ENV
+          echo "$MANIFEST_TAG" > manifest-tag.txt
+
+      - name: Upload manifest-tag artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: manifest-tag${{ inputs.artifact-name-suffix }}
+          path: manifest-tag.txt
+
+  sign:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-amd64, create-manifest]
+    uses: l3montree-dev/devguard-action/.github/workflows/sign.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-amd64.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  attest:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-amd64, create-manifest]
+    uses: l3montree-dev/devguard-action/.github/workflows/attest.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-amd64.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}

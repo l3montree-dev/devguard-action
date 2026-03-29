@@ -50,6 +50,16 @@ on:
         required: false
         type: string
         default: 'garage'
+      arch:
+        description: 'Target architecture suffix appended to the generated image tag (e.g. amd64, arm64). Leave empty for single-arch builds.'
+        required: false
+        type: string
+        default: ''
+      upstream-version:
+        description: 'Upstream version passed to devguard-scanner generate-tag (matches the nix package version segment, e.g. 0)'
+        required: false
+        type: string
+        default: '0'
     secrets:
       devguard-token:
         required: false
@@ -137,19 +147,21 @@ jobs:
 
       - name: Set image tag
         id: set-image-tag
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            IMAGE_TAG="${{ inputs.image-name }}:${GITHUB_REF#refs/tags/}"
-          else
-            branch=${GITHUB_REF##*/}
-            sha=${GITHUB_SHA::8}
-            ts=$(date +%s)
-            IMAGE_TAG="${{ inputs.image-name }}:${branch}-${sha}-${ts}"
-          fi
-          IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
-          echo "$IMAGE_TAG" > image-tag.txt
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
+        with:
+          args: >
+            sh -c "
+              devguard-scanner generate-tag
+                --imagePath='${{ inputs.image-name }}'
+                --ref='${{ github.ref_name }}'
+                --upstreamVersion='${{ inputs.upstream-version }}'
+                --architecture='${{ inputs.arch }}'
+              >> image-tag-env.txt
+              IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
+              echo \"\$IMAGE_TAG\" > image-tag.txt
+              echo \"image_tag=\$IMAGE_TAG\" >> \"\$GITHUB_OUTPUT\"
+              echo \"IMAGE_TAG=\$IMAGE_TAG\" >> \"\$GITHUB_ENV\"
+            "
 
       - name: Upload image-tag artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
