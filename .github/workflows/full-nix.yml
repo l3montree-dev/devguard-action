@@ -261,7 +261,7 @@ jobs:
           name: manifest-tag${{ inputs.artifact-name-suffix }}
           path: manifest-tag.txt
 
-  sign:
+  sign-amd64:
     if: ${{ inputs.should-deploy }}
     needs: [build-amd64, create-manifest]
     uses: l3montree-dev/devguard-action/.github/workflows/sign.yml@nix
@@ -276,7 +276,22 @@ jobs:
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
 
-  attest:
+  sign-arm64:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-arm64, create-manifest]
+    uses: l3montree-dev/devguard-action/.github/workflows/sign.yml@nix
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-arm64.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-arm64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  attest-amd64:
     if: ${{ inputs.should-deploy }}
     needs: [build-amd64, create-manifest]
     uses: l3montree-dev/devguard-action/.github/workflows/attest.yml@nix
@@ -288,5 +303,20 @@ jobs:
       api-url: ${{ inputs.api-url }}
       artifact-name: ${{ needs.build-amd64.outputs.artifact-purl }}
       image-suffix: ${{ inputs.artifact-name-suffix }}-amd64
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
+  attest-arm64:
+    if: ${{ inputs.should-deploy }}
+    needs: [build-arm64, create-manifest]
+    uses: l3montree-dev/devguard-action/.github/workflows/attest.yml@nix
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      artifact-name: ${{ needs.build-arm64.outputs.artifact-purl }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-arm64
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
