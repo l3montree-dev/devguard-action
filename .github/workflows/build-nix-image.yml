@@ -99,7 +99,7 @@ jobs:
       - uses: imjasonh/setup-crane@v0.1
 
       - name: Write Nix cache secret key
-        if: ${{ secrets.nix-cache-secret-key != '' }}
+        if: ${{ inputs.nix-cache-s3-endpoint != '' }}
         run: |
           echo "${{ secrets.nix-cache-secret-key }}" > /tmp/nix-cache-priv-key.pem
 
@@ -107,7 +107,7 @@ jobs:
         run: nix build .#${{ inputs.nix-target }}
 
       - name: Push build results to Nix cache
-        if: ${{ inputs.nix-cache-s3-endpoint != '' && secrets.nix-cache-aws-access-key-id != '' }}
+        if: ${{ inputs.nix-cache-s3-endpoint != '' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.nix-cache-aws-access-key-id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.nix-cache-aws-secret-access-key }}
