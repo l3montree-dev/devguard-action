@@ -15,11 +15,6 @@ on:
         description: 'Full OCI image name without tag (e.g. ghcr.io/l3montree-dev/devguard)'
         required: true
         type: string
-      upstream-version:
-        description: 'Upstream version segment used by generate-tag (matches the nix package version, e.g. 0)'
-        required: false
-        type: string
-        default: '0'
       artifact-name-suffix:
         description: 'Suffix appended to artifact names to avoid conflicts when building multiple images in the same workflow'
         required: false
@@ -54,6 +49,16 @@ on:
         required: false
         type: boolean
         default: true
+      runner-amd64:
+        description: 'GitHub Actions runner label for the amd64 build'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+      runner-arm64:
+        description: 'GitHub Actions runner label for the arm64 build'
+        required: false
+        type: string
+        default: 'ubuntu-24.04-arm'
       nix-cache-substituter:
         description: 'Nix binary cache substituter URL'
         required: false
@@ -109,7 +114,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       arch: amd64
-      upstream-version: ${{ inputs.upstream-version }}
+      runner: ${{ inputs.runner-amd64 }}
       nix-cache-substituter: ${{ inputs.nix-cache-substituter }}
       nix-cache-public-key: ${{ inputs.nix-cache-public-key }}
       nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
@@ -132,7 +137,7 @@ jobs:
       asset-name: ${{ inputs.asset-name }}
       api-url: ${{ inputs.api-url }}
       arch: arm64
-      upstream-version: ${{ inputs.upstream-version }}
+      runner: ${{ inputs.runner-arm64 }}
       nix-cache-substituter: ${{ inputs.nix-cache-substituter }}
       nix-cache-public-key: ${{ inputs.nix-cache-public-key }}
       nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}

@@ -55,11 +55,11 @@ on:
         required: false
         type: string
         default: ''
-      upstream-version:
-        description: 'Upstream version passed to devguard-scanner generate-tag (matches the nix package version segment, e.g. 0)'
+      runner:
+        description: 'GitHub Actions runner label to use (e.g. ubuntu-latest, ubuntu-24.04-arm)'
         required: false
         type: string
-        default: '0'
+        default: 'ubuntu-latest'
     secrets:
       devguard-token:
         required: false
@@ -82,7 +82,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     outputs:
       image-tag: ${{ steps.set-image-tag.outputs.image_tag }}
       image-digest: ${{ steps.get-digest.outputs.digest }}
@@ -154,7 +154,6 @@ jobs:
               devguard-scanner generate-tag
                 --imagePath='${{ inputs.image-name }}'
                 --ref='${{ github.ref_name }}'
-                --upstreamVersion='${{ inputs.upstream-version }}'
                 --architecture='${{ inputs.arch }}'
               >> image-tag-env.txt
               IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
