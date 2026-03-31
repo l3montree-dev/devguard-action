@@ -249,16 +249,9 @@ jobs:
 
           # Derive manifest tag by stripping the -amd64 arch suffix
           MANIFEST_TAG="${AMD64_TAG%-amd64}"
-          MANIFEST_TAG_LATEST="${{ inputs.image-name }}:${{ github.ref_name }}-latest"
-          MANIFEST_TAG_LATEST=$(echo "$MANIFEST_TAG_LATEST" | tr '[:upper:]' '[:lower:]')
 
           crane index append \
             --tag "$MANIFEST_TAG" \
-            -m "$AMD64_TAG" \
-            -m "$ARM64_TAG"
-
-          crane index append \
-            --tag "$MANIFEST_TAG_LATEST" \
             -m "$AMD64_TAG" \
             -m "$ARM64_TAG"
 
