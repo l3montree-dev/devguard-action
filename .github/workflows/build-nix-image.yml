@@ -93,12 +93,6 @@ jobs:
           fetch-depth: 0 # needed for flake.nix to resolve self.shortRev
           persist-credentials: false
 
-      - name: In-Toto Provenance record start
-        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0
-        with:
-          args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
-        continue-on-error: true
-
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
@@ -106,8 +100,12 @@ jobs:
             ${{ inputs.nix-cache-substituter != '' && format('substituters = https://cache.nixos.org {0}', inputs.nix-cache-substituter) || '' }}
             ${{ inputs.nix-cache-public-key != '' && format('trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= {0}', inputs.nix-cache-public-key) || '' }}
 
-      - name: Install crane
-        run: nix profile install nixpkgs#crane
+      - name: Install crane and devguard-scanner
+        run: nix profile install nixpkgs#crane .#devguardScanner
+
+      - name: In-Toto Provenance record start
+        run: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+        continue-on-error: true
 
       - name: Write Nix cache secret key
         if: ${{ inputs.nix-cache-s3-endpoint != '' }}
@@ -148,20 +146,16 @@ jobs:
 
       - name: Set image tag
         id: set-image-tag
-        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main-latest
-        with:
-          args: >
-            sh -c "
-              devguard-scanner generate-tag
-                --imagePath='${{ inputs.image-name }}'
-                --ref='${{ github.ref_name }}'
-                --architecture='${{ inputs.arch }}'
-              >> image-tag-env.txt
-              IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
-              echo \"\$IMAGE_TAG\" > image-tag.txt
-              echo \"image_tag=\$IMAGE_TAG\" >> \"\$GITHUB_OUTPUT\"
-              echo \"IMAGE_TAG=\$IMAGE_TAG\" >> \"\$GITHUB_ENV\"
-            "
+        run: |
+          devguard-scanner generate-tag \
+            --imagePath='${{ inputs.image-name }}' \
+            --ref='${{ github.ref_name }}' \
+            --architecture='${{ inputs.arch }}' \
+            >> image-tag-env.txt
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
+          echo "$IMAGE_TAG" > image-tag.txt
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
 
       - name: Upload image-tag artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
@@ -199,9 +193,7 @@ jobs:
           path: artifact-purl-safe.txt
 
       - name: In-Toto Provenance record stop
-        uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.0.0
-        with:
-          args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
+        run: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
         continue-on-error: true
 
       - name: Upload SLSA Provenance
