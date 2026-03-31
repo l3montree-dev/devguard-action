@@ -106,7 +106,8 @@ jobs:
             ${{ inputs.nix-cache-substituter != '' && format('substituters = https://cache.nixos.org {0}', inputs.nix-cache-substituter) || '' }}
             ${{ inputs.nix-cache-public-key != '' && format('trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= {0}', inputs.nix-cache-public-key) || '' }}
 
-      - uses: imjasonh/setup-crane@v0.1
+      - name: Install crane
+        run: nix profile install nixpkgs#crane
 
       - name: Write Nix cache secret key
         if: ${{ inputs.nix-cache-s3-endpoint != '' }}

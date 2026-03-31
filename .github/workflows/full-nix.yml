@@ -218,7 +218,13 @@ jobs:
     outputs:
       manifest-tag: ${{ steps.manifest.outputs.manifest-tag }}
     steps:
-      - uses: imjasonh/setup-crane@v0.1
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Install crane
+        run: nix profile install nixpkgs#crane
 
       - name: Log in to ghcr.io
         run: crane auth login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
