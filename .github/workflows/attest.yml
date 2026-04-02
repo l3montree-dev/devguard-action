@@ -85,62 +85,45 @@ jobs:
           echo "Encoded: $API_ARTIFACT_NAME"
         fi    
         
-    - name: Get SBOM
+    - name: Get and Attest SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
         args: >
           sh -c "
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json/' --token='${{ secrets.devguard-token }}'> /tmp/sbom.json
-          "
-      env:
-        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
-    - name: Get VeX
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-        args: >
-            sh -c " 
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/vex.json/' --token='${{ secrets.devguard-token }}'> /tmp/vex.json
-            "
-      env:
-        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}      
-    - name: Get SAST-Results
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-         args: >
-            sh -c " 
-            slug=$(devguard-scanner slug ${{ github.ref_name }}) && devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}'> /tmp/sarif.json
-            "
-    - name: Attest SBOM
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-        args: >
-          sh -c "
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
+            devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json/' --token='${{ secrets.devguard-token }}' > /tmp/sbom.json &&
             if [ -f image-digest.txt ]; then
               devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             fi
           "
       env:
-        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}    
-    - name: Attest VeX
+        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
+    - name: Get and Attest VeX
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
         args: >
           sh -c "
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
+            devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/vex.json/' --token='${{ secrets.devguard-token }}' > /tmp/vex.json &&
             if [ -f image-digest.txt ]; then
               devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/vex.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
-              devguard-scanner attest /tmp/vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }}  --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest /tmp/vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             fi
           "
       env:
+        API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
-    - name: Attest SAST-Results
+    - name: Get and Attest SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
         args: >
           sh -c "
+            slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
+            devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}' > /tmp/sarif.json &&
             if [ -f image-digest.txt ]; then
               devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sarif.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
             else
@@ -149,8 +132,7 @@ jobs:
           "
       env:
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
-    # download build-provenance.json if it exists
-    - name: Download build-provenance.json
+    - name: Download and Attest build-provenance.json
       uses: actions/download-artifact@v4
       with:
         name: build${{ inputs.image-suffix }}.provenance.json
@@ -167,4 +149,4 @@ jobs:
             fi
           "
       env:
-        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}  
+        ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
