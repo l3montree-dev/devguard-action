@@ -97,39 +97,31 @@ jobs:
         path: ${{ inputs.image-destination-path }}
       if: inputs.disable-artifact-registry-as-image-store == false
 
-    # Calculate a tag name
-    # If the image input is provided, use it as the tag
-    # If the workflow is triggered by a tag, use the tag as the tag
-    # Otherwise built GitOps compatible tags. Fallback to the branch name, commit hash, and timestamp. Those tags are sortable and  unique.
+    # Calculate the image tag with the same generator used in GitLab CI.
     - name: Set IMAGE_TAG
-      run: |
-        if [ "${IMAGE}" != "" ]; then
-          IMAGE_TAG="${IMAGE}"
-        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          if [ "${IMAGE_SUFFIX}" != "" ]; then
-            IMAGE_TAG="ghcr.io/${{ github.repository }}/${IMAGE_SUFFIX}:${GITHUB_REF#refs/tags/}"  
-          else
-            IMAGE_TAG="ghcr.io/${{ github.repository }}:${GITHUB_REF#refs/tags/}"  
-          fi
-
-        else
-          branch=${GITHUB_REF##*/}
-          sha=${GITHUB_SHA::8}
-          ts=$(date +%s)
-            if [ "${IMAGE_SUFFIX}" != "" ]; then
-              IMAGE_TAG="ghcr.io/${{ github.repository }}/${IMAGE_SUFFIX}:${branch}-${sha}-${ts}"
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      with:
+        args: >
+          sh -c '
+            if [ -n "$IMAGE" ]; then
+              IMAGE_TAG="$IMAGE"
             else
-              IMAGE_TAG="ghcr.io/${{ github.repository }}:${branch}-${sha}-${ts}"
+              if [ -n "$IMAGE_SUFFIX" ]; then
+                IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}/${IMAGE_SUFFIX}"
+              else
+                IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}"
+              fi
+
+              devguard-scanner generate-tag --imagePath="$IMAGE_PATH" --ref="$GITHUB_REF_NAME" > image-tag-env.txt
+              IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
             fi
-        fi
 
-        IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
-        echo "$IMAGE_TAG" > image-tag.txt
-
-        # necessary for the kaniko job
-        echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+            IMAGE_TAG=$(echo "$IMAGE_TAG" | tr "[:upper:]" "[:lower:]")
+            echo "$IMAGE_TAG" > image-tag.txt
+            echo "IMAGE_TAG=$(cat image-tag.txt)" >> "$GITHUB_ENV"
+          '
       env:
-        IMAGE_SUFFIX: ${{ inputs.image-suffix }}  
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
         IMAGE: ${{ inputs.image }}
 
     - name: Upload to container registry

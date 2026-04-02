@@ -153,9 +153,15 @@ jobs:
             --architecture='${{ inputs.arch }}' \
             >> image-tag-env.txt
           IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
+          ARTIFACT_NAME=$(grep '^ARTIFACT_NAME=' image-tag-env.txt | cut -d= -f2-)
+          ARTIFACT_URL_ENCODED=$(grep '^ARTIFACT_URL_ENCODED=' image-tag-env.txt | cut -d= -f2-)
           echo "$IMAGE_TAG" > image-tag.txt
+          echo "$ARTIFACT_NAME" > artifact-purl.txt
+          echo "$ARTIFACT_URL_ENCODED" > artifact-purl-safe.txt
           echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
           echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$GITHUB_ENV"
+          echo "ARTIFACT_URL_ENCODED=$ARTIFACT_URL_ENCODED" >> "$GITHUB_ENV"
 
       - name: Upload image-tag artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
@@ -172,13 +178,12 @@ jobs:
       - name: Set artifact PURL
         id: set-purl
         run: |
-          REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
-          NAME=${REGISTRY_AND_IMAGE##*/}
-          PURL="pkg:oci/$NAME?repository_url=$REGISTRY_AND_IMAGE"
-          echo "$PURL" > artifact-purl.txt
-          SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
-          echo "$SAFE_PURL" > artifact-purl-safe.txt
-          echo "purl=$PURL" >> $GITHUB_OUTPUT
+          echo "purl=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "$ARTIFACT_NAME" > artifact-purl.txt
+          echo "$ARTIFACT_URL_ENCODED" > artifact-purl-safe.txt
+        env:
+          ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
+          ARTIFACT_URL_ENCODED: ${{ env.ARTIFACT_URL_ENCODED }}
 
       - name: Upload artifact-purl artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2 - https://github.com/actions/upload-artifact/releases/tag/v4.6.2
