@@ -93,9 +93,9 @@ jobs:
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json/' --token='${{ secrets.devguard-token }}' > /tmp/sbom.json &&
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             else
-              devguard-scanner attest /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest /tmp/sbom.json --predicateType='https://cyclonedx.org/bom' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             fi
           "
       env:
@@ -109,9 +109,9 @@ jobs:
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/vex.json/' --token='${{ secrets.devguard-token }}' > /tmp/vex.json &&
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/vex.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/vex.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --token='${{ secrets.devguard-token }}' --predicateType='https://cyclonedx.org/vex' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             else
-              devguard-scanner attest /tmp/vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest /tmp/vex.json --predicateType='https://cyclonedx.org/vex' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             fi
           "
       env:
@@ -125,9 +125,9 @@ jobs:
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}' > /tmp/sarif.json &&
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sarif.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} /tmp/sarif.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             else
-              devguard-scanner attest /tmp/sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest /tmp/sarif.json --predicateType='https://www.schemastore.org/schemas/json/sarif-2.1.0.json' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             fi
           "
       env:
@@ -143,9 +143,9 @@ jobs:
         args: |
           sh -c "
             if [ -f image-digest.txt ]; then
-              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             else
-              devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
+              devguard-scanner attest build.provenance.json --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --predicateType='https://slsa.dev/provenance/v1' --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName="${{ env.ARTIFACT_NAME }}"
             fi
           "
       env:
