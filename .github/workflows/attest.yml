@@ -88,7 +88,7 @@ jobs:
     - name: Get and Attest SBOM
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
-        args: >
+        args: |
           sh -c "
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/sbom.json/' --token='${{ secrets.devguard-token }}' > /tmp/sbom.json &&
@@ -104,7 +104,7 @@ jobs:
     - name: Get and Attest VeX
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
-        args: >
+        args: |
           sh -c "
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/artifacts/${{ env.API_ARTIFACT_NAME }}/vex.json/' --token='${{ secrets.devguard-token }}' > /tmp/vex.json &&
@@ -120,7 +120,7 @@ jobs:
     - name: Get and Attest SAST-Results
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
-        args: >
+        args: |
           sh -c "
             slug=$(devguard-scanner slug ${{ github.ref_name }}) &&
             devguard-scanner curl '${{ inputs.api-url }}/api/v1/organizations/${{ inputs.asset-name }}/refs/'$slug'/sarif.json' --token='${{ secrets.devguard-token }}' > /tmp/sarif.json &&
@@ -140,7 +140,7 @@ jobs:
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       continue-on-error: true
       with:
-        args: >
+        args: |
           sh -c "
             if [ -f image-digest.txt ]; then
               devguard-scanner attest -u ${{ github.actor }} -r ghcr.io -p ${{ secrets.GITHUB_TOKEN }} build.provenance.json \"$(cat image-tag.txt)@$(cat image-digest.txt)\" --predicateType='https://slsa.dev/provenance/v1' --token='${{ secrets.devguard-token }}' --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --ref=${{ github.ref_name }} --artifactName=${{ env.ARTIFACT_NAME }}
