@@ -50,6 +50,11 @@ on:
         required: false
         type: string
         default: 'garage'
+      nix-version:
+        description: 'Pinned Nix version used for deterministic builds (must match other CI systems)'
+        required: false
+        type: string
+        default: '2.34.4'
       arch:
         description: 'Target architecture suffix appended to the generated image tag (e.g. amd64, arm64). Leave empty for single-arch builds.'
         required: false
@@ -95,10 +100,14 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
         with:
+          install_url: ${{ format('https://releases.nixos.org/nix/nix-{0}/install', inputs.nix-version) }}
           extra_nix_config: |
             experimental-features = nix-command flakes
             ${{ inputs.nix-cache-substituter != '' && format('substituters = https://cache.nixos.org {0}', inputs.nix-cache-substituter) || '' }}
             ${{ inputs.nix-cache-public-key != '' && format('trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= {0}', inputs.nix-cache-public-key) || '' }}
+
+      - name: Show Nix version
+        run: nix --version
 
       - name: Install crane and devguard-scanner
         run: nix profile install nixpkgs#crane .#devguardScanner

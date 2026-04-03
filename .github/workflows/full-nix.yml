@@ -84,6 +84,11 @@ on:
         required: false
         type: string
         default: 'garage'
+      nix-version:
+        description: 'Pinned Nix version used by reusable build jobs'
+        required: false
+        type: string
+        default: '2.34.4'
     secrets:
       devguard-token:
         required: true
@@ -120,6 +125,7 @@ jobs:
       nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
       nix-cache-s3-bucket: ${{ inputs.nix-cache-s3-bucket }}
       nix-cache-region: ${{ inputs.nix-cache-region }}
+      nix-version: ${{ inputs.nix-version }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       nix-cache-secret-key: ${{ secrets.nix-cache-secret-key }}
@@ -143,6 +149,7 @@ jobs:
       nix-cache-s3-endpoint: ${{ inputs.nix-cache-s3-endpoint }}
       nix-cache-s3-bucket: ${{ inputs.nix-cache-s3-bucket }}
       nix-cache-region: ${{ inputs.nix-cache-region }}
+      nix-version: ${{ inputs.nix-version }}
     secrets:
       devguard-token: ${{ secrets.devguard-token }}
       nix-cache-secret-key: ${{ secrets.nix-cache-secret-key }}
