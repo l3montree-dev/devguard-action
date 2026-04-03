@@ -265,6 +265,38 @@ jobs:
           name: manifest-tag${{ inputs.artifact-name-suffix }}
           path: manifest-tag.txt
 
+      - name: Get manifest digest and prepare signing artifacts
+        run: |
+          MANIFEST_DIGEST=$(crane digest "$MANIFEST_TAG")
+          echo "$MANIFEST_TAG" > image-tag.txt
+          echo "$MANIFEST_DIGEST" > image-digest.txt
+
+      - name: Upload manifest image-tag artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-tag${{ inputs.artifact-name-suffix }}-manifest
+          path: image-tag.txt
+
+      - name: Upload manifest image-digest artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-digest${{ inputs.artifact-name-suffix }}-manifest
+          path: image-digest.txt
+
+  sign-manifest:
+    if: ${{ inputs.should-deploy }}
+    needs: [create-manifest]
+    uses: l3montree-dev/devguard-action/.github/workflows/sign.yml@nix
+    permissions:
+      contents: read
+      packages: write
+    with:
+      asset-name: ${{ inputs.asset-name }}
+      api-url: ${{ inputs.api-url }}
+      image-suffix: ${{ inputs.artifact-name-suffix }}-manifest
+    secrets:
+      devguard-token: ${{ secrets.devguard-token }}
+
   sign-amd64:
     if: ${{ inputs.should-deploy }}
     needs: [build-amd64, create-manifest]
