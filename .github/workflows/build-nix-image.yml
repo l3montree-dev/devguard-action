@@ -110,7 +110,7 @@ jobs:
         run: nix --version
 
       - name: Install crane and devguard-scanner
-        run: nix profile install nixpkgs#crane .#devguardScanner
+        run: nix profile install nixpkgs#crane github:l3montree-dev/devguard#devguardScanner
 
       - name: In-Toto Provenance record start
         run: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
