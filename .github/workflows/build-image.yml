@@ -132,6 +132,14 @@ jobs:
           echo "ARTIFACT_URL_ENCODED=$ARTIFACT_URL_ENCODED" >> "$GITHUB_ENV"
         fi
 
+    - name: Log in to ghcr.io
+      run: |
+        docker run --rm \
+          -v "${HOME}/.docker:/tmp/.docker" \
+          ghcr.io/l3montree-dev/devguard/scanner:main \
+          crane auth login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
+      if: inputs.disable-artifact-registry-as-image-store == true
+
     - name: Upload to container registry
       run: |
         docker run --rm \
