@@ -137,8 +137,7 @@ jobs:
         docker run --rm \
           -v "$GITHUB_WORKSPACE:/workspace" \
           -w /workspace \
-          -v "$DOCKER_CONFIG:/root/.docker:ro" \
-          -e DOCKER_CONFIG=/root/.docker \
+          -v "${HOME}/.docker:/tmp/.docker:ro" \
           ghcr.io/l3montree-dev/devguard/scanner:main \
           crane push "${IMAGE_DESTINATION_PATH}" "$(cat image-tag.txt)"
       env:
