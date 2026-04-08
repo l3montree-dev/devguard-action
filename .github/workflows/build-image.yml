@@ -23,7 +23,7 @@ on:
         type: string
         required: false
         default: ''
-        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty." 
+        description: "The name of the artifact you are building. This is useful when a single pipeline builds more than a single artifact like a container with a shell inside and one without. If you build a single artifact - leave it empty."
       disable-artifact-registry-as-image-store:
         required: false
         default: false
@@ -34,6 +34,11 @@ on:
         type: string
         required: false
         default: ''
+      nix-version:
+        description: 'Pinned Nix version used for deterministic builds (must match other CI systems)'
+        required: false
+        type: string
+        default: '2.34.4'
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -55,21 +60,26 @@ jobs:
         fi
 
         echo "BUILD_ARGS=$BUILD_ARGS --no-push --tarPath /github/workspace/tmp-image.tar" >> $GITHUB_ENV
-        
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
         persist-credentials: false
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        install_url: ${{ format('https://releases.nixos.org/nix/nix-{0}/install', inputs.nix-version) }}
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+
+    - name: Install crane and devguard-scanner
+      run: nix profile install nixpkgs#crane github:l3montree-dev/devguard#devguardScanner
+
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+      run: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
-
-    - name: Setup crane
-      uses: imjasonh/setup-crane@v0.1
 
     - name: Build Docker image with Kaniko
       # Building the Docker image using Kaniko
@@ -82,7 +92,7 @@ jobs:
       run: mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-  
+
     - name: Use crane to get the digest
       run: |
         crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
@@ -97,29 +107,31 @@ jobs:
         path: ${{ inputs.image-destination-path }}
       if: inputs.disable-artifact-registry-as-image-store == false
 
-    # Calculate the image tag with the same generator used in GitLab CI.
-    - name: Set IMAGE_TAG
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-        args: >
-          sh -c '
-            if [ -n "$IMAGE" ]; then
-              IMAGE_TAG="$IMAGE"
-            else
-              if [ -n "$IMAGE_SUFFIX" ]; then
-                IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}/${IMAGE_SUFFIX}"
-              else
-                IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}"
-              fi
-
-              devguard-scanner generate-tag --imagePath="$IMAGE_PATH" --ref="$GITHUB_REF_NAME" > image-tag-env.txt
-              IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
-            fi
-
-            IMAGE_TAG=$(echo "$IMAGE_TAG" | tr "[:upper:]" "[:lower:]")
-            echo "$IMAGE_TAG" > image-tag.txt
-            echo "IMAGE_TAG=$(cat image-tag.txt)" >> "$GITHUB_ENV"
-          '
+    - name: Set image tag
+      id: set-image-tag
+      run: |
+        if [ -n "$IMAGE" ]; then
+          IMAGE_TAG="$IMAGE"
+          echo "$IMAGE_TAG" > image-tag.txt
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+        else
+          if [ -n "$IMAGE_SUFFIX" ]; then
+            IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}/${IMAGE_SUFFIX}"
+          else
+            IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}"
+          fi
+          devguard-scanner generate-tag \
+            --imagePath="$IMAGE_PATH" \
+            --ref="$GITHUB_REF_NAME" \
+            >> image-tag-env.txt
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
+          ARTIFACT_NAME=$(grep '^ARTIFACT_NAME=' image-tag-env.txt | cut -d= -f2-)
+          ARTIFACT_URL_ENCODED=$(grep '^ARTIFACT_URL_ENCODED=' image-tag-env.txt | cut -d= -f2-)
+          echo "$IMAGE_TAG" > image-tag.txt
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$GITHUB_ENV"
+          echo "ARTIFACT_URL_ENCODED=$ARTIFACT_URL_ENCODED" >> "$GITHUB_ENV"
+        fi
       env:
         IMAGE_SUFFIX: ${{ inputs.image-suffix }}
         IMAGE: ${{ inputs.image }}
@@ -138,25 +150,21 @@ jobs:
         name: image-digest${{ inputs.image-suffix }}
         path: image-digest.txt
 
-    - name: Set Artifact purl
+    - name: Set artifact PURL
       run: |
-        if [ -n "$ARTIFACT_NAME" ]; then
-          PURL="$ARTIFACT_NAME"
+        if [ -n "$ARTIFACT_NAME_INPUT" ]; then
+          PURL="$ARTIFACT_NAME_INPUT"
+          SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
         else
-          IMAGE_TAG=$(cat image-tag.txt)
-          REGISTRY_AND_IMAGE=${IMAGE_TAG%:*}
-          VERSION=${IMAGE_TAG##*:}
-          NAMESPACE_AND_NAME=${REGISTRY_AND_IMAGE#*/}
-          NAME=${NAMESPACE_AND_NAME##*/}
-          REPOSITORY_URL="$REGISTRY_AND_IMAGE"
-          PURL="pkg:oci/$NAME?repository_url=$REPOSITORY_URL"
+          PURL="$ARTIFACT_NAME"
+          SAFE_PURL="$ARTIFACT_URL_ENCODED"
         fi
-
         echo "$PURL" > artifact-purl.txt
+        echo "$SAFE_PURL" > artifact-purl-safe.txt
         echo "PURL=$PURL" >> $GITHUB_ENV
         echo "Using artifact name: $PURL"
       env:
-        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        ARTIFACT_NAME_INPUT: ${{ inputs.artifact-name }}
 
     - name: Upload artifact purl
       uses: actions/upload-artifact@v4
@@ -164,17 +172,11 @@ jobs:
         name: artifact-purl${{ inputs.image-suffix }}
         path: artifact-purl.txt
 
-    - name: create safe purl
-      run: |
-        SAFE_PURL=$(echo -n "$PURL" | jq -s -R -r @uri)
-        echo "$SAFE_PURL" > artifact-purl-safe.txt
-        echo "Safe artifact name: $SAFE_PURL"
-
     - name: Upload safe artifact purl
       uses: actions/upload-artifact@v4
       with:
         name: artifact-purl-safe${{ inputs.image-suffix }}
-        path: artifact-purl-safe.txt    
+        path: artifact-purl-safe.txt
 
     # Upload the calculated image tag as an artifact
     - name: Upload image tag
@@ -184,11 +186,9 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
-      with:
-        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
+      run: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
       continue-on-error: true
-      
+
     - name: Upload SLSA Provenance
       uses: actions/upload-artifact@v4
       with:
