@@ -34,11 +34,6 @@ on:
         type: string
         required: false
         default: ''
-      nix-version:
-        description: 'Pinned Nix version used for deterministic builds (must match other CI systems)'
-        required: false
-        type: string
-        default: '2.34.4'
     secrets:
       devguard-token:
         description: 'DevGuard API token'
@@ -67,18 +62,11 @@ jobs:
         submodules: recursive
         persist-credentials: false
 
-    - uses: cachix/install-nix-action@v31
-      with:
-        install_url: ${{ format('https://releases.nixos.org/nix/nix-{0}/install', inputs.nix-version) }}
-        extra_nix_config: |
-          experimental-features = nix-command flakes
-
-    - name: Install crane and devguard-scanner
-      run: nix profile install nixpkgs#crane github:l3montree-dev/devguard#devguardScanner
-
     - name: In-Toto Provenance record start
       id: in-toto-start
-      run: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      with:
+        args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
 
     - name: Build Docker image with Kaniko
@@ -95,7 +83,11 @@ jobs:
 
     - name: Use crane to get the digest
       run: |
-        crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
+        docker run --rm \
+          -v "$GITHUB_WORKSPACE:/workspace" \
+          -w /workspace \
+          ghcr.io/l3montree-dev/devguard/scanner:main \
+          crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
 
@@ -109,6 +101,9 @@ jobs:
 
     - name: Set image tag
       id: set-image-tag
+      env:
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        IMAGE: ${{ inputs.image }}
       run: |
         if [ -n "$IMAGE" ]; then
           IMAGE_TAG="$IMAGE"
@@ -120,10 +115,14 @@ jobs:
           else
             IMAGE_PATH="ghcr.io/${GITHUB_REPOSITORY}"
           fi
-          devguard-scanner generate-tag \
-            --imagePath="$IMAGE_PATH" \
-            --ref="$GITHUB_REF_NAME" \
-            >> image-tag-env.txt
+          docker run --rm \
+            -e IMAGE_PATH \
+            -e GITHUB_REF_NAME \
+            ghcr.io/l3montree-dev/devguard/scanner:main \
+            devguard-scanner generate-tag \
+              --imagePath="$IMAGE_PATH" \
+              --ref="$GITHUB_REF_NAME" \
+          >> image-tag-env.txt
           IMAGE_TAG=$(grep '^IMAGE_TAG=' image-tag-env.txt | cut -d= -f2-)
           ARTIFACT_NAME=$(grep '^ARTIFACT_NAME=' image-tag-env.txt | cut -d= -f2-)
           ARTIFACT_URL_ENCODED=$(grep '^ARTIFACT_URL_ENCODED=' image-tag-env.txt | cut -d= -f2-)
@@ -132,13 +131,16 @@ jobs:
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$GITHUB_ENV"
           echo "ARTIFACT_URL_ENCODED=$ARTIFACT_URL_ENCODED" >> "$GITHUB_ENV"
         fi
-      env:
-        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
-        IMAGE: ${{ inputs.image }}
 
     - name: Upload to container registry
       run: |
-        crane push "${IMAGE_DESTINATION_PATH}" $(cat image-tag.txt)
+        docker run --rm \
+          -v "$GITHUB_WORKSPACE:/workspace" \
+          -w /workspace \
+          -v "$DOCKER_CONFIG:/root/.docker:ro" \
+          -e DOCKER_CONFIG=/root/.docker \
+          ghcr.io/l3montree-dev/devguard/scanner:main \
+          crane push "${IMAGE_DESTINATION_PATH}" "$(cat image-tag.txt)"
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
       if: inputs.disable-artifact-registry-as-image-store == true
@@ -186,7 +188,9 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      run: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      with:
+        args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance
       continue-on-error: true
 
     - name: Upload SLSA Provenance
