@@ -75,7 +75,7 @@ jobs:
     - name: In-Toto Provenance run
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
-        args: devguard-scanner intoto run --step=deploy --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --supplyChainOutputDigest="${{ env.DIGEST }}"
+        args: devguard-scanner intoto run --step=deploy --materials=image-tag.txt --products=image-tag.txt --products=image-digest.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --supplyChainOutputDigest="${{ env.DIGEST }}" --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }}
       continue-on-error: true
 
     - name: Setup crane
