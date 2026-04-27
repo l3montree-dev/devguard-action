@@ -134,6 +134,7 @@ jobs:
 
     - name: Log in to ghcr.io
       run: |
+        chmod 644 ${HOME}/.docker
         docker run --rm \
           -v "${HOME}/.docker:/tmp/.docker" \
           ghcr.io/l3montree-dev/devguard/scanner:main \
