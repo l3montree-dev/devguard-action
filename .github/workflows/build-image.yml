@@ -62,6 +62,16 @@ jobs:
         submodules: recursive
         persist-credentials: false
 
+    - name: "In-Toto permission fix"
+      run: |
+        mkdir -p ${HOME}/.docker
+        # Ensure the .docker directory is owned by the container user (UID 53111)
+        sudo chown -R 53111:53111 ${HOME}/.docker || true
+        sudo chmod 700 ${HOME}/.docker || true
+        # Make the workspace writable by the in-toto/container user (UID 53111)
+        sudo chown -R 53111:53111 $GITHUB_WORKSPACE || true
+        sudo chmod -R u+rwX $GITHUB_WORKSPACE || true
+
     - name: In-Toto Provenance record start
       id: in-toto-start
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
@@ -135,8 +145,10 @@ jobs:
     - name: Log in to ghcr.io
       run: |
         mkdir -p ${HOME}/.docker
-        chmod -R 777 ${HOME}/.docker
+        sudo chown -R 53111:53111 ${HOME}/.docker || true
+        sudo chmod 700 ${HOME}/.docker || true
         docker run --rm \
+          --user 53111:53111 \
           -v "${HOME}/.docker:/tmp/.docker" \
           ghcr.io/l3montree-dev/devguard/scanner:main \
           crane auth login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
