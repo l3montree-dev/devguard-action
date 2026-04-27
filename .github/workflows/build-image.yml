@@ -99,6 +99,11 @@ jobs:
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
 
+    - name: Fix workspace permissions
+      run: |
+        sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
+      continue-on-error: true
+
     - name: Use crane to get the digest
       run: |
         docker run --rm \
@@ -108,11 +113,6 @@ jobs:
           crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
-
-    - name: Fix workspace permissions
-      run: |
-        sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
-      continue-on-error: true
 
     # Uploading the built Docker image as an artifact
     - name: Upload artifact
@@ -225,6 +225,11 @@ jobs:
       uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }}
+      continue-on-error: true
+
+    - name: Fix workspace permissions (after provenance)
+      run: |
+        sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
       continue-on-error: true
 
     - name: Upload SLSA Provenance
