@@ -109,6 +109,11 @@ jobs:
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
 
+    - name: Fix workspace permissions
+      run: |
+        sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
+      continue-on-error: true
+
     # Uploading the built Docker image as an artifact
     - name: Upload artifact
       uses: actions/upload-artifact@v4
