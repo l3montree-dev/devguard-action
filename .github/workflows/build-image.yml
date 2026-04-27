@@ -89,8 +89,9 @@ jobs:
     - name: Move the image.tar to the destination path
       run: |
         if [ -f tmp-image.tar ]; then
-          sudo chown $(id -u):$(id -g) tmp-image.tar 2>/dev/null || true
-          mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
+          sudo chown $(id -u):$(id -g) tmp-image.tar || true
+          sudo chmod 644 tmp-image.tar || true
+          sudo mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
         else
           echo "tmp-image.tar not found"
           exit 1
