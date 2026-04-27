@@ -101,7 +101,8 @@ jobs:
 
     - name: Fix workspace permissions
       run: |
-        sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
+        # Keep 53111 as owner but make it world-writable for runner to write output files
+        sudo chmod -R 777 $GITHUB_WORKSPACE || true
       continue-on-error: true
 
     - name: Use crane to get the digest
@@ -230,6 +231,7 @@ jobs:
     - name: Fix workspace permissions (after provenance)
       run: |
         sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE || true
+        sudo chmod -R u+rw,g+r,o+r $GITHUB_WORKSPACE || true
       continue-on-error: true
 
     - name: Upload SLSA Provenance
