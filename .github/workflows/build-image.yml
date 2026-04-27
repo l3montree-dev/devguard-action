@@ -87,7 +87,14 @@ jobs:
         args: ${{ env.BUILD_ARGS }}
 
     - name: Move the image.tar to the destination path
-      run: mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
+      run: |
+        if [ -f tmp-image.tar ]; then
+          sudo chown $(id -u):$(id -g) tmp-image.tar 2>/dev/null || true
+          mv tmp-image.tar "${IMAGE_DESTINATION_PATH}"
+        else
+          echo "tmp-image.tar not found"
+          exit 1
+        fi
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
 
