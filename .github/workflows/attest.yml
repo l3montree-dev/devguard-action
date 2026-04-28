@@ -87,7 +87,7 @@ jobs:
         echo "Resolved artifact name for attestation: ${{ inputs.artifact-name }}"
         
     - name: Get and Attest SBOM
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       with:
         args: |
           sh -c "
@@ -108,7 +108,7 @@ jobs:
         API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
     - name: Get and Attest VeX
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       with:
         args: |
           sh -c "
@@ -129,7 +129,7 @@ jobs:
         API_ARTIFACT_NAME: ${{ env.API_ARTIFACT_NAME }}
         ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
     - name: Get and Attest SAST-Results
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       with:
         args: |
           sh -c "
@@ -153,7 +153,7 @@ jobs:
       with:
         name: build${{ inputs.image-suffix }}.provenance.json
     - name: Attest build-provenance.json
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       continue-on-error: true
       with:
         args: |

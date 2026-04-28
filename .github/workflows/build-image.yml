@@ -74,7 +74,7 @@ jobs:
 
     - name: In-Toto Provenance record start
       id: in-toto-start
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       with:
         args: devguard-scanner intoto start --step=build --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }}
       continue-on-error: true
@@ -110,7 +110,7 @@ jobs:
         docker run --rm \
           -v "$GITHUB_WORKSPACE:/workspace" \
           -w /workspace \
-          ghcr.io/l3montree-dev/devguard/scanner:main \
+          ghcr.io/l3montree-dev/devguard/scanner:v1.3.0 \
           crane digest --tarball="${IMAGE_DESTINATION_PATH}" > image-digest.txt
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
@@ -142,7 +142,7 @@ jobs:
           docker run --rm \
             -e IMAGE_PATH \
             -e GITHUB_REF_NAME \
-            ghcr.io/l3montree-dev/devguard/scanner:main \
+            ghcr.io/l3montree-dev/devguard/scanner:v1.3.0 \
             devguard-scanner generate-tag \
               --imagePath="$IMAGE_PATH" \
               --ref="$GITHUB_REF_NAME" \
@@ -164,7 +164,7 @@ jobs:
         docker run --rm \
           --user 53111:53111 \
           -v "${HOME}/.docker:/tmp/.docker" \
-          ghcr.io/l3montree-dev/devguard/scanner:main \
+          ghcr.io/l3montree-dev/devguard/scanner:v1.3.0 \
           crane auth login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
       if: inputs.disable-artifact-registry-as-image-store == true
 
@@ -174,7 +174,7 @@ jobs:
           -v "$GITHUB_WORKSPACE:/workspace" \
           -w /workspace \
           -v "${HOME}/.docker:/tmp/.docker:ro" \
-          ghcr.io/l3montree-dev/devguard/scanner:main \
+          ghcr.io/l3montree-dev/devguard/scanner:v1.3.0 \
           crane push "${IMAGE_DESTINATION_PATH}" "$(cat image-tag.txt)"
       env:
         IMAGE_DESTINATION_PATH: ${{ inputs.image-destination-path }}
@@ -223,7 +223,7 @@ jobs:
         path: image-tag.txt
 
     - name: In-Toto Provenance record stop
-      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:main
+      uses: docker://ghcr.io/l3montree-dev/devguard/scanner:v1.3.0
       with:
         args: devguard-scanner intoto stop --step=build --products=image-digest.txt --products=image-tag.txt --token=${{ secrets.devguard-token }} --apiUrl=${{ inputs.api-url }} --assetName=${{ inputs.asset-name }} --supplyChainId=${{ github.sha }} --generateSlsaProvenance --defaultRef=${{ github.event.repository.default_branch }} --isTag=${{ github.ref_type == 'tag' }} --ref=${{ github.ref_name }}
       continue-on-error: true
