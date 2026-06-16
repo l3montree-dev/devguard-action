@@ -1,6 +1,7 @@
 # Vulnerability Scanning with DevGuard GitHub Actions Workflow
 
-> **Deprecated:** This repository is no longer actively maintained. GitHub and GitLab CI templates are now generated from a single TypeScript source of truth in [l3montree-dev/devguard-ci-components](https://github.com/l3montree-dev/devguard-ci-components). Please use that project instead.
+> [!WARNING]
+> This repository is no longer actively maintained. GitHub and GitLab CI templates are now generated from a single TypeScript source of truth in [l3montree-dev/devguard-ci-components](https://github.com/l3montree-dev/devguard-ci-components). Please use that project instead.
 
 This GitHub Actions workflow allows you to integrate vulnerability management into your CI/CD pipeline using DevGuard. It simplifies the process of performing security scans, including Software Composition Analysis (SCA) and Container Scanning, ensuring that vulnerabilities are identified and mitigated early in your development process.
 
